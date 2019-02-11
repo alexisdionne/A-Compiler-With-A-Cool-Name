@@ -6,3 +6,4 @@ from Lexer import Lexer
 
 lexObj = Lexer("TestData.txt")
 lexObj.getFile()
+lexObj.findTokens()
