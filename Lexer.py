@@ -10,30 +10,35 @@ class Lexer:
     # Each lexer has a line and character position
     self.lineNum = 1
     self.currentPos = 0
-    self.programCount = 1
-    # A most recent full match
-    self.lastPosition = 0
     
-    # accepting states 
-    # if state in accepting
-    #self.accepting = [1,4,5,6,11]
+    self.contents = ""
+    
+    # accepting states available to identify tokens
     self.accepting = {
-      1 : "INTOP",    # +
-      4 : "L_BRACE",  # [
-      5 : "R_BRACE",  # ]
-      6 : "EOP",      # $
-      11: "P_STMT",   # print
-      12: "L_PAREN",  # (
-      13: "R_PAREN",  # )
-      14: "DIGIT",    # 0-9
-      15: "QUOTE",    # "
-      20: "W_STMT",   # while
-      23: "I_TYPE",   # int
-      27: "S_TYPE",   # string
-      28: "I_STMT",   # if
-      29: "B_TYPE",   # boolean
-      30: "B_VAL"     # false | true
+      1 : ["INTOP",  '+'],      # +
+      4 : ["L_BRACE",'{'],      # {
+      5 : ["R_BRACE",'}'],      # }
+      6 : ["EOP",    '$'],      # $
+      11: ["P_STMT", 'print'],  # print
+      12: ["L_PAREN",'('],      # (
+      13: ["R_PAREN",')'],      # )
+      14: "DIGIT",              # 0-9 
+      15: ["QUOTE",  '"'],      # "
+      20: ["W_STMT", 'while'],  # while
+      23: ["I_TYPE", 'int'],    # int
+      24: ["A_STMT", '='],      # =
+      26: ["BOOLOP",'!='], # != | ==
+      27: ["S_TYPE", 'string'], # string
+      28: ["I_STMT", 'if'],     # if
+      29: ["B_TYPE", 'boolean'],# boolean
+      30: ["B_VAL",'false'],    # false
+      31: "CHAR",               # a-z 
+      32: ["B_VAL",'true'],     # true
+      33: ["BOOLOP",'==']       # ==
     }
+    
+    # a list of available symbols to stop at when lexing
+    self.symbols = ['+','{','}','(',')','==','!=','=','"']
     
     # And a dictionary of movements through the DFA
     
@@ -52,7 +57,7 @@ class Lexer:
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 8, 0, 0, 8, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #7  - p
       [ 0, 0, 0, 0,30, 0, 0, 0, 9, 0, 0, 9, 0, 0, 0, 0, 0, 0,10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #8  - r
       [ 0, 0, 0, 0,10, 0, 0, 0, 0, 0, 0, 0, 0,10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #9  - i
-      [16, 0, 0, 0,30, 0,27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #10 - n
+      [16, 0, 0, 0,32, 0,27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #10 - n
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #11 - t - print accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #12 - ( accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #13 - ) accepting state
@@ -66,24 +71,30 @@ class Lexer:
       [ 0, 0, 0, 0, 0,28, 0, 0, 0, 0, 0, 0, 0,22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #21 - i
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #22 - n 
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #23 - t - int accepting state
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,26, 0, 0, 0, 0, 0, 0],  #24 - = (assignment) accepting state
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,33, 0, 0, 0, 0, 0, 0],  #24 - = (assignment) accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,26, 0, 0, 0, 0, 0, 0],  #25 - !
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #26 - != & == accepting state
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #26 - != accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #27 - string accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #28 - if accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #29 - boolean accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #30 - false accepting state
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0]
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #31 - char accepting state
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #32 - true accepting state
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0]   #33 - == accepting state
       ]
     
     self.fileName = fileName
       
   def getFile(self):
+  # arbitrary method for seeing the contents of the file before reading output
+  # reads file contents into a string
     file = open(self.fileName, "r")
+    self.contents = file.read()
     print ("Printing all contents")
-    print (file.read())
+    print (self.contents+"\n--------------------------------------------------------------\n")
     
   def getIndexFromChar(self, c):
+  # returns the index in the DFATable of the character provided
     CharToNum = {
       'a' : 0,
       'b' : 1,
@@ -138,49 +149,92 @@ class Lexer:
     return CharToNum.get(c)
       
   
+  # practice accessing dictionary
+  def practice(self):
+    print(self.accepting[1][1])
+  
   def verifyLex(self):
+  # search through a file and pick out tokens from the grammer
+  # initialize variables
+    counter = 0
+    errorCount = 0
+    programCount = 1
     state = 0
     nextState = 0
     currentChar = ""
     index = 0
-    errorCount = 0
-    programCount = 1
+    inQuotes = False    # all characters read until the next " are marked as char
+    
+    # variables for greedy algorithm
+    lastPosition = 0    # the location of the last character that was recognized as a token
+    lastAcceptingState = 0  # the last state, kept for printing
+    
     print("INFO Lexer - Lexing program ",programCount,"...")
-    with open(self.fileName) as f:
-      currentChar = f.read(1) # initialize the first character
-      while True:
+    #with open(self.fileName) as f:
+    currentChar = self.contents[0] # initialize the first character
+    #  while True:
+    while(self.currentPos < len(self.contents)):
+   
+      currentChar = self.contents[self.currentPos]
+      if(currentChar == "\n"):
+        self.lineNum += 1
+        self.currentPos = 0
+      else:
+        self.currentPos += 1
+        
+      # tell the compiler to not worry at all about the letters it doesn't know
+      index = self.getIndexFromChar(currentChar)
+      if(state == 3 and index != 41):
+        index = 46 # a recognized character ' ' so the compiler doesn't throw an error
+        
+      print("index:",index)
+      nextState = self.DFATable[state][index]
+      print("CurrentChar : " ,currentChar ,"\nCurrent state: " ,state,"\nNext State: ",nextState, "\ncurrentPos: ",self.currentPos,"\n")
+      state = nextState
       
-        if(currentChar == "\n"):
-          self.lineNum += 1
-          self.currentPos = 0
+      if(inQuotes):
+        state = 31
+      
+      if(state in self.accepting):
+        # store the located state, and keep looking
+        lastAcceptingState = state
+        lastPosition = self.currentPos
+        print("\nACCEPTED: ",state)
+        print("current char: "+currentChar)
+        print("lastPosition: ",lastPosition)
+        
+      if(currentChar in self.symbols or inQuotes):
+        # consume + emit found
+        if(state == 31 or state == 14): # char found
+          print("DEBUG  Lexer - "+self.accepting[lastAcceptingState]+" [ "+currentChar+" ] found at (",self.lineNum,":",self.currentPos,")")
         else:
-          self.currentPos += 1
-          
-        # tell the compiler to not worry at all about the letters it doesn't know
-        index = self.getIndexFromChar(currentChar)
-        if(state == 3 and index != 41):
-          index = 46 # a recognized character ' ' so the compiler doesn't throw an error
-          
-        #print("index:",index)
-        nextState = self.DFATable[state][index]
-        #print("CurrentChar : " ,currentChar ,"\nCurrent state: " ,state,"\nNext State: ",nextState, "\n")
-        state = nextState
+          print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.accepting[lastAcceptingState][1]+" ] found at (",self.lineNum,":",self.currentPos,")")
+        print()
+        self.currentPos = lastPosition
+        state = 0
         
-        if(state in self.accepting):
-          print("DEBUG  Lexer - "+self.accepting.get(state)+" [ "+currentChar+" ] found at (",self.lineNum,":",self.currentPos,")")
-          if(state == 6):
-            print("INFO Lexer - Lex completed with ",errorCount," errors\n\n")
-            programCount += 1
-            errorCount = 0
-            if f.read(1):
-              print("INFO Lexer - Lexing program ",programCount,"...")
-          state = 0
-          
-        if(currentChar != '$' and not f.tell()):
-          print("WARNING Lexer - (",self.lineNum,":",self.currentPos,") End of Program symbol missing")
-          
-        currentChar = f.read(1)
+      if(not inQuotes and currentChar == '"'):
+        inQuotes = True
+        print("ENTER QUOTES")
+      elif(inQuotes and currentChar == '"'):
+        inQuotes = False
+        print("EXIT QUOTES")
+      
+      #currentChar = f.read(1)
+      
+      if not currentChar:
+        print("EoF")
+        break
         
-        if not currentChar:
-          print("EoF")
-          break
+      # implement once greedy algorithm hold final state (EoP)  
+      #if(currentChar != '$' and f.tell() == None):
+      #  print("WARNING Lexer - (",self.lineNum,":",self.currentPos,") End of Program symbol missing")
+      
+      # print("DEBUG  Lexer - "+self.accepting[state]+" [ "+currentChar+" ] found at (",self.lineNum,":",self.currentPos,")")
+        # if(state == 6):
+          # print("INFO Lexer - Lex completed with ",errorCount," errors\n\n")
+          # programCount += 1
+          # errorCount = 0
+          # if f.read(1):
+            # print("INFO Lexer - Lexing program ",programCount,"...")
+        # state = 0
