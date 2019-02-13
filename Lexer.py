@@ -42,7 +42,6 @@ class Lexer:
     # a list of the keywords available in the grammar
     self.keywords = [11,20,23,27,28,29,30,32]
     # a list of available symbols to stop at when lexing
-    # self.symbols = ['+','{','}','(',')','==','!=','=','"','$']
     self.symbols = [1,4,5,6,12,13,15,26,33,34]
     
     # And a dictionary of movements through the DFA
@@ -93,20 +92,17 @@ class Lexer:
     self.fileName = fileName
       
   def getFile(self):
-  # arbitrary method for seeing the contents of the file before reading output
-  # reads file contents into a string
+    # method for processing the test data file
+    # reads file contents into a string
     file = open(self.fileName, "r")
     self.contents = file.read()
-    print ("Printing all contents")
-    print (self.contents+"\n--------------------------------------------------------------\n")
-    #for i,c in enumerate(self.contents):
-    #  print (i,c)
     
     # remove comments
     self.contents = re.sub('/\*.*?\*/', '', self.contents, flags= re.S)
     print ("Printing modified contents")
     print (self.contents+"\n--------------------------------------------------------------\n")
     
+    # used for keeping track of when to stop printing INFO statements
     self.totalPrograms = self.contents.count('$')
     
   def getIndexFromChar(self, c):
@@ -166,32 +162,31 @@ class Lexer:
       
   
   def verifyLex(self):
-  # search through a file and pick out tokens from the grammar
+  # search through a file and pick out and print tokens from the grammar
   # initialize variables
-    counter = 0
-    errorCount = 0
-    programCount = 1
-    state = 0
-    nextState = 0
-    currentChar = ""
-    index = 0
+    errorCount = 0    # counter for errors
+    programCount = 1  # counter for INFO statements
+    state = 0         # the current state occupied in the DFA table
+    nextState = 0     # used to view the next state as well as move there
+    currentChar = ""  # the character currently being examined
+    index = 0         # the location in the DFA Table of the current character (if it has one)
     inQuotes = False  # all characters read until the next " are marked as char
-    nextJump = 0
+    nextJump = 0      # used to determine if we should keep going or just accept the ID as an ID
     
     # variables for greedy algorithm
     lastPosition = 0        # the location of the last character that was recognized as a token
     lastAcceptingState = 0  # the last state, kept for printing
     
     print("INFO Lexer - Lexing program ",programCount,"...")
-    #with open(self.fileName) as f:
-    currentChar = self.contents[0] # initialize the first character
-    #  while True:
+    currentChar = self.contents[0]
+    
     while(self.currentPos < len(self.contents)):
-   
+    # loop while the program has not reached the end of the file string
+    
       # update the current character and its position
       currentChar = self.contents[self.currentPos]
       index = self.getIndexFromChar(currentChar)
-      #print("index:",index)
+      
       # when there is an unrecognized token, we gotta just move right past it, but with a report of course
       if index is None and lastPosition == self.currentPos:
         print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Token: "+currentChar)
@@ -203,96 +198,79 @@ class Lexer:
           self.linePos += 1
           currentChar = self.contents[self.currentPos]
           index = self.getIndexFromChar(currentChar)
+        # otherwise just ignore
         else:
           index = 46
-        
+      
+      # increase the current line position for printing
       if(currentChar == "\n"):
         #print("New Line!")
         self.lineNum += 1
         self.linePos = 0
       self.currentPos += 1
       self.linePos += 1
-        
-      #print("index:",index)
-      # update the states
       
-        
+      # update the states
       nextState = self.DFATable[state][index]
-      #print("\nCurrentChar : " ,currentChar ,"\nCurrent state: " ,state,"\nNext State: ",nextState, "\ncurrentPos: ",self.currentPos)
       state = nextState
       
-      #print("inQuotes = ",inQuotes)
-      # check for ==
-      
-      
+      # if quotes are active, everything is a char until the next quote
       if inQuotes:
         state = 31
       
+      # assume the first character we see is an id until proven otherwise
       if(index < 26 and lastAcceptingState == 0 and inQuotes == False):
         lastAcceptingState = 35
         lastPosition = self.currentPos
+        # we need the nextJump to determine later on if its worth continuing greedy grabs
         nextJump = self.DFATable[nextState][self.getIndexFromChar(self.contents[self.currentPos])]
-        #print("lastAccepting: ",lastAcceptingState,"lastPosition:",lastPosition," currentChar: ",self.contents[lastPosition-1])
-      #print("lastPos:",lastPosition,"\n")
       
+      # determine if the lastAcceptingState we have is the best one
       if(state in self.accepting or lastAcceptingState == 35):
-        # store the located state, and keep looking
-        #print("ACCEPTABLE: ",state)
+      
+        # this is within accepting states because it might effect a string if it came before
         if(inQuotes == False and currentChar == '"'):
           inQuotes = True
-          #print("ENTER QUOTES")
         elif(inQuotes == True and currentChar == '"'):
           inQuotes = False
-          #print("EXIT QUOTES")
           state = 15
           
+        # a keyword is preferable, so if it already happened, we don't need a new one
         if(not lastAcceptingState in self.keywords):
-          #print("looking for the first state")
-          #print('last positioin:',lastPosition)
-          #print(self.accepting[state][1][0]," == ",self.contents[lastPosition-1])
-          # found a keyword
-          if(state in self.keywords and self.accepting[state][1][0] == self.contents[lastPosition-1]): 
-            #print("---keyword found at ", self.currentPos)
+          # found a keyword that matched the first char of the current grouping
+          if(state in self.keywords and self.accepting[state][1][0] == self.contents[lastPosition-1]):
             lastAcceptingState = state
             lastPosition = self.currentPos
           else:
-            #print("else1")
             # found an id
             if(index < 26 and inQuotes == False): 
               #print("--found an id at ", lastPosition)
               lastAcceptingState = 35
+              # we want to go to 0 in case this ID is also the begining of a keyword
+              # this accomplishes less useless processing until reaching a symbol
               if nextJump is 0:
                 state = 0
-              #print("mnextJump: ",nextJump)
             else:
-              #print('else2')
               # found a symbol
-              if(lastAcceptingState != 35):
-                #print('else3')
-                if(state in self.symbols): 
-                  #print("-found a symbol at ", self.currentPos)
+              if(state in self.symbols and lastAcceptingState != 35):
+                lastAcceptingState = state
+                lastPosition = self.currentPos
+              else:
+                # found a digit
+                if(state == 14):
                   lastAcceptingState = state
                   lastPosition = self.currentPos
-                else:
-                  # found a digit
-                  if(state == 14): 
-                    #print("f0und a d1g1t at ", self.currentPos)
-                    lastAcceptingState = state
-                    lastPosition = self.currentPos
-                  elif(state == 31):
-                    #print("found a CHARACTER at", self.currentPos)
-                    lastAcceptingState = state
-                    lastPosition = self.currentPos
-        
-        #print("current char: "+currentChar)
-        #print("lastPosition: ",lastPosition)
+                elif(state == 31):
+                  lastAcceptingState = state
+                  lastPosition = self.currentPos
         
       if((state in self.symbols or inQuotes) or state == 14):
         # consume + emit found
-        if(lastAcceptingState == 31 or lastAcceptingState == 14 or lastAcceptingState == 35): # char found
-          #print("lastPos[]: "+self.contents[lastPosition-1])
+        # CHAR, DIGIT, and ID get special printing since they are ranges
+        if(lastAcceptingState == 31 or lastAcceptingState == 14 or lastAcceptingState == 35):
           print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.contents[lastPosition-1]+" ] found at (",self.lineNum,":",self.linePos,")")
-        elif(lastAcceptingState == 6): # EoP symbol found
+        # EoP symbol found
+        elif(lastAcceptingState == 6): 
           print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+currentChar+" ] found at (",self.lineNum,":",self.linePos,")")
           if(errorCount == 0):
             print("INFO Lexer - Lex completed with 0 errors\n\n")
@@ -300,7 +278,7 @@ class Lexer:
             print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n\n")
           errorCount = 0
           programCount += 1
-          # ended in a comment
+          # watch out for no more programs
           if(programCount >= self.totalPrograms and self.contents[len(self.contents)-1] != '$'):
             print("INFO Lexer - Lexing program ",programCount,"...")
         else:
@@ -308,31 +286,12 @@ class Lexer:
           
         # reset the pointers
         self.currentPos = lastPosition
-        self.linePos = lastPosition
         state = 0
         lastAcceptingState = 0
         
     # End of File - if a program is missing the EoP token, the lexer knows
     if(self.contents[len(self.contents)-1] != '$'):
-      print("WARNING Lexer - (",self.lineNum,":",self.linePos,") End of Program symbol missing")
+      print("WARNING Lexer - Warning:",self.lineNum,":",self.linePos," End of Program symbol missing: $")
       print("INFO Lexer - Lex completed with ",errorCount," errors\n\n")
     
     print("\nEoF")
-    
-    
-    
-    
-        # if(not lastAcceptingState in self.keywords and self.currentPos > lastPosition and lastAcceptingState == 0): # the first keyword has priority
-          # print("--first keyword found at ", self.currentPos)
-          # lastAcceptingState = state
-          # lastPosition = self.currentPos
-        # elif(not state in self.symbols and self.getIndexFromChar(currentChar) < 26):   # any other tokens
-          # print("-found an id at ", self.currentPos)
-          # lastAcceptingState = 34
-          # lastPosition = self.currentPos
-        # else:
-          # print("found something ElSeE at ", self.currentPos)
-          # lastAcceptingState = state
-          # lastPosition = self.currentPos
-    # else:
-      # print("DEBUG  Lexer - "+self.accepting[6][0]+" [ "+self.accepting[6][1]+" ] found at (",self.lineNum,":",self.linePos,")")
