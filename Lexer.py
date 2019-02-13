@@ -188,6 +188,21 @@ class Lexer:
       # update the current character and its position
       currentChar = self.contents[self.currentPos]
       index = self.getIndexFromChar(currentChar)
+      #print("index:",index)
+      # when there is an unrecognized token, we gotta just move right past it, but with a report of course
+      if index is None and lastPosition == self.currentPos:
+        print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Token: "+currentChar)
+        errorCount += 1
+        # watch out for an error right at the end!
+        if(self.currentPos < len(self.contents)-1):
+          lastPosition += 1
+          self.currentPos += 1
+          self.linePos += 1
+          currentChar = self.contents[self.currentPos]
+          index = self.getIndexFromChar(currentChar)
+        else:
+          index = 46
+        
       if(currentChar == "\n"):
         self.lineNum += 1
         self.linePos = 0
@@ -196,6 +211,8 @@ class Lexer:
         
       #print("index:",index)
       # update the states
+      
+        
       nextState = self.DFATable[state][index]
       #print("\nCurrentChar : " ,currentChar ,"\nCurrent state: " ,state,"\nNext State: ",nextState, "\ncurrentPos: ",self.currentPos)
       state = nextState
@@ -264,17 +281,20 @@ class Lexer:
         # consume + emit found
         if(lastAcceptingState == 31 or lastAcceptingState == 14 or lastAcceptingState == 34): # char found
           #print("lastPos[]: "+self.contents[lastPosition-1])
-          print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.contents[lastPosition-1]+" ] found at (",self.lineNum,":",lastPosition,")")
+          print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.contents[lastPosition-1]+" ] found at (",self.lineNum,":",self.linePos,")")
         elif(lastAcceptingState == 6): # EoP symbol found
-          print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+currentChar+" ] found at (",self.lineNum,":",lastPosition,")")
-          print("INFO Lexer - Lex completed with ",errorCount," errors\n\n")
+          print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+currentChar+" ] found at (",self.lineNum,":",self.linePos,")")
+          if(errorCount == 0):
+            print("INFO Lexer - Lex completed with 0 errors\n\n")
+          else:
+            print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n\n")
           programCount += 1
           errorCount = 0
           # ended in a comment
           if(programCount <= self.totalPrograms):
             print("INFO Lexer - Lexing program ",programCount,"...")
         else:
-          print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.accepting[lastAcceptingState][1]+" ] found at (",self.lineNum,":",lastPosition,")")
+          print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.accepting[lastAcceptingState][1]+" ] found at (",self.lineNum,":",self.linePos,")")
         #print()
         # reset the pointers
         self.currentPos = lastPosition
@@ -283,11 +303,13 @@ class Lexer:
         lastAcceptingState = 0
         
     # End of File - if a program is missing the EoP token, the lexer knows
-    if(programCount < self.totalPrograms):
+    #print(programCount)
+    #print(self.totalPrograms)
+    if(programCount > self.totalPrograms):
       print("WARNING Lexer - (",self.lineNum,":",self.linePos,") End of Program symbol missing")
       print("INFO Lexer - Lex completed with ",errorCount," errors\n\n")
     
-    print("EoF")
+    print("\nEoF")
     
     
     
