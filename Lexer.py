@@ -28,7 +28,7 @@ class Lexer:
       15: ["QUOTE",  '"'],      # "
       20: ["W_STMT", 'while'],  # while
       23: ["I_TYPE", 'int'],    # int
-      24: ["A_STMT", '='],      # =
+      34: ["A_STMT", '='],      # =
       26: ["BOOLOP",'!='], # != | ==
       27: ["S_TYPE", 'string'], # string
       28: ["I_STMT", 'if'],     # if
@@ -37,12 +37,13 @@ class Lexer:
       31: ["CHAR", 'a'],        # a-z 
       32: ["B_VAL",'true'],     # true
       33: ["BOOLOP",'=='],      # ==
-      34: ["ID", 'a']           # single char id
+      35: ["ID", 'a']           # single char id
     }
     # a list of the keywords available in the grammar
     self.keywords = [11,20,23,27,28,29,30,32]
     # a list of available symbols to stop at when lexing
-    self.symbols = ['+','{','}','(',')','==','!=','=','"','$']
+    # self.symbols = ['+','{','}','(',')','==','!=','=','"','$']
+    self.symbols = [1,4,5,6,12,13,15,26,33,34]
     
     # And a dictionary of movements through the DFA
     
@@ -75,7 +76,7 @@ class Lexer:
       [ 0, 0, 0, 0, 0,28, 0, 0, 0, 0, 0, 0, 0,22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #21 - i
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #22 - n 
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #23 - t - int accepting state
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,33, 0, 0, 0, 0, 0, 0],  #24 - = (assignment) accepting state
+      [34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34, 2,34,33,34,34,34,34,34,34],  #24 - =
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,26, 0, 0, 0, 0, 0, 0],  #25 - !
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #26 - != accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #27 - string accepting state
@@ -84,7 +85,9 @@ class Lexer:
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #30 - false accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #31 - char accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #32 - true accepting state
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0]   #33 - == accepting state
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #33 - == accepting state
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #34 - = (assignment) accepting state
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0]   #35 - ID accepting state
       ]
     
     self.fileName = fileName
@@ -173,7 +176,7 @@ class Lexer:
     currentChar = ""
     index = 0
     inQuotes = False  # all characters read until the next " are marked as char
-    
+    nextJump = 0
     
     # variables for greedy algorithm
     lastPosition = 0        # the location of the last character that was recognized as a token
@@ -204,6 +207,7 @@ class Lexer:
           index = 46
         
       if(currentChar == "\n"):
+        #print("New Line!")
         self.lineNum += 1
         self.linePos = 0
       self.currentPos += 1
@@ -218,17 +222,20 @@ class Lexer:
       state = nextState
       
       #print("inQuotes = ",inQuotes)
+      # check for ==
       
-      if(inQuotes):
+      
+      if inQuotes:
         state = 31
       
       if(index < 26 and lastAcceptingState == 0 and inQuotes == False):
-        lastAcceptingState = 34
+        lastAcceptingState = 35
         lastPosition = self.currentPos
+        nextJump = self.DFATable[nextState][self.getIndexFromChar(self.contents[self.currentPos])]
         #print("lastAccepting: ",lastAcceptingState,"lastPosition:",lastPosition," currentChar: ",self.contents[lastPosition-1])
       #print("lastPos:",lastPosition,"\n")
       
-      if(state in self.accepting):
+      if(state in self.accepting or lastAcceptingState == 35):
         # store the located state, and keep looking
         #print("ACCEPTABLE: ",state)
         if(inQuotes == False and currentChar == '"'):
@@ -253,13 +260,16 @@ class Lexer:
             # found an id
             if(index < 26 and inQuotes == False): 
               #print("--found an id at ", lastPosition)
-              lastAcceptingState = 34
+              lastAcceptingState = 35
+              if nextJump is 0:
+                state = 0
+              #print("mnextJump: ",nextJump)
             else:
               #print('else2')
               # found a symbol
-              if(lastAcceptingState != 34):
+              if(lastAcceptingState != 35):
                 #print('else3')
-                if(currentChar in self.symbols): 
+                if(state in self.symbols): 
                   #print("-found a symbol at ", self.currentPos)
                   lastAcceptingState = state
                   lastPosition = self.currentPos
@@ -277,9 +287,9 @@ class Lexer:
         #print("current char: "+currentChar)
         #print("lastPosition: ",lastPosition)
         
-      if((currentChar in self.symbols or inQuotes) or state == 14):
+      if((state in self.symbols or inQuotes) or state == 14):
         # consume + emit found
-        if(lastAcceptingState == 31 or lastAcceptingState == 14 or lastAcceptingState == 34): # char found
+        if(lastAcceptingState == 31 or lastAcceptingState == 14 or lastAcceptingState == 35): # char found
           #print("lastPos[]: "+self.contents[lastPosition-1])
           print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.contents[lastPosition-1]+" ] found at (",self.lineNum,":",self.linePos,")")
         elif(lastAcceptingState == 6): # EoP symbol found
@@ -288,14 +298,14 @@ class Lexer:
             print("INFO Lexer - Lex completed with 0 errors\n\n")
           else:
             print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n\n")
-          programCount += 1
           errorCount = 0
+          programCount += 1
           # ended in a comment
-          if(programCount <= self.totalPrograms):
+          if(programCount >= self.totalPrograms and self.contents[len(self.contents)-1] != '$'):
             print("INFO Lexer - Lexing program ",programCount,"...")
         else:
           print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.accepting[lastAcceptingState][1]+" ] found at (",self.lineNum,":",self.linePos,")")
-        #print()
+          
         # reset the pointers
         self.currentPos = lastPosition
         self.linePos = lastPosition
@@ -303,9 +313,7 @@ class Lexer:
         lastAcceptingState = 0
         
     # End of File - if a program is missing the EoP token, the lexer knows
-    #print(programCount)
-    #print(self.totalPrograms)
-    if(programCount > self.totalPrograms):
+    if(self.contents[len(self.contents)-1] != '$'):
       print("WARNING Lexer - (",self.lineNum,":",self.linePos,") End of Program symbol missing")
       print("INFO Lexer - Lex completed with ",errorCount," errors\n\n")
     
