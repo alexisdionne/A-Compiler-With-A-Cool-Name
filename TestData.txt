@@ -1,44 +1,89 @@
-{print(string"false while")}$
-
-/*LongTestCase-EverythingExceptBooleanDeclaration*/{/*IntDeclaration*/intaintba=0b=0/*WhileLoop*/while(a!=3){print(a)while(b!=3){print(b)b=1+bif(b==2){/*PrintStatement*/print("there is no spoon"/*Thiswilldonothing*/)}}b=0a=1+a}}$
-
-/*Long Test Case - Everything Except Boolean Declaration */
-{
-  /* Int Declaration */
-  int a
-  int b
-  a = 0
-  b=0
-  /* While Loop */
-  while (a != 3) {
-    print(a)
-    while (b != 3) {
-      print(b)
-      b = 1 + b
-      if (b == 2) {
-        /* Print Statement */
-        print("there is no spoon" /* This will do nothing */ )
-      }
-    }
-    b = 0
-    a = 1+a
-  }
-}
-$
+{1 = 2}$
 
 {}$
 
-{{{{{{}}}}}}$
+{{{{{}}}}}$
 
-{{{{{{}}} /*comments are ignored */}}}}$
+{{{{{}}}}$
 
-{/*comments ignored */%int@}$
+{print("")}$
 
-{ 
-int a
-a = a
-string b
-a = b
-};$
+{print(a)}$
 
-{a == b}
+{print(2)}$
+
+{print("a")}$
+
+{print(false)}$
+
+{print("inta")}$
+
+print(a){print(a)}$
+
+{a=1}$
+
+{a = 1}$
+
+{a = 1 + 2  + 3   + 4    + 5     }$
+
+{
+  int a
+  a = a
+  string b
+  a = b
+}$
+
+{int a a=a string b a=b}$
+
+{{{{{{a=1+2+3+4+5{print(4+a)}}}}}}}$
+
+{
+  /* what about comments */
+  string b
+}$
+
+{
+  string s
+  s = "this string is /* in */ visible"
+}$
+
+{
+  boolean d
+  d = ("string" != "string")
+}$
+
+/*    Bad Test Data     */
+
+{"$"}$
+
+{"two
+lines"}$
+
+{print("No Caps Mister Bond")}$
+
+{print("no digits 007")}$
+
+{int A}$
+
+{
+~!@#$%^&*_+{}|:<>?[];',./
+  bool ean d
+}$
+
+/*    Questionable Test Data     */
+
+{int a /* unterminated comment }$
+
+{intfintif=2}$
+
+{intii=0stringss="hello"booleanbb=(true====(1!=2))if(b==true){while(true!=(b!=(false==(2!=3)))){i=1+iprint(s)}}print("ugly code")}$
+
+{print(007)}$
+
+{a=12}$
+
+{a = "unterminated string }$
+
+{thisisnotalexeme}$
+
+{thisisnotalexeme = 1}$
