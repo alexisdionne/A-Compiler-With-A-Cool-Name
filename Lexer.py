@@ -189,12 +189,15 @@ class Lexer:
       index = self.getIndexFromChar(currentChar)
       #print("index: ",index)
       
+      #print("Current Char: ",currentChar," lastPosition: ",lastPosition," CurrentPos: ", self.currentPos)
       # when there is an unrecognized token, we gotta just move right past it, but with a report of course
-      if index is None and lastPosition == self.currentPos:
+      if index is None:
+        #if lastPosition == self.currentPos:
         print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Token: "+currentChar)
         errorCount += 1
         # watch out for an error right at the end!
-        if(self.currentPos < len(self.contents)-1):
+        if(self.currentPos == len(self.contents)-1):
+          #print("last in the file?")
           lastPosition += 1
           self.currentPos += 1
           self.linePos += 1
@@ -203,6 +206,13 @@ class Lexer:
         # otherwise just ignore
         else:
           index = 46
+      elif index is 43 and self.contents[self.currentPos+1] is not "=":
+        print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Token: "+currentChar)
+        errorCount += 1
+      elif index is 41 and self.contents[self.currentPos+1] is not "/" and self.contents[self.currentPos-1] is not "/":
+        print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Token: "+currentChar)
+        errorCount += 1
+        
       
       # increase the current line position for printing
       if(currentChar == "\n"):
@@ -216,11 +226,18 @@ class Lexer:
       # update the states
       state = self.DFATable[state][index]
       
-      print("Current Char: ",currentChar," State: ",state," CurrentPos: ", self.currentPos)
       
       # if quotes are active, everything is a char until the next quote unless not in the language
-      if inQuotes 
+      if inQuotes:
+        if currentChar == '"':
+          state = 15
+        elif index > 25 and index != 46:
+          print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Character: ",currentChar)
+          errorCount += 1
+          state = 36
+        else:  
           state = 31
+      
       
       # assume the first character we see is an id until proven otherwise
       if(index < 26 and lastAcceptingState == 0 and inQuotes == False):
@@ -228,6 +245,7 @@ class Lexer:
         lastPosition = self.currentPos
         # we need the nextJump to determine later on if its worth continuing greedy grabs
         nextJump = self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])]
+      
       
       # determine if the lastAcceptingState we have is the best one
       if(state in self.accepting or lastAcceptingState == 35):
@@ -265,7 +283,7 @@ class Lexer:
               if(state in self.symbols and lastAcceptingState != 35):
                 lastAcceptingState = state
                 lastPosition = self.currentPos
-                print("Accepted Symbol")
+                #print("Accepted Symbol")
               else:
                 # found a digit
                 if(state == 14):
@@ -278,7 +296,8 @@ class Lexer:
                   lastPosition = self.currentPos
                   #print("Accepted Char")
         
-      if((state in self.symbols or inQuotes) or state == 14):
+        
+      if(state in self.symbols or state == 31 or state == 14):
         # consume + emit found
         #print("symbol found, processing token")
         # CHAR, DIGIT, and ID get special printing since they are ranges
@@ -304,11 +323,15 @@ class Lexer:
         state = 0
         lastAcceptingState = 0
         
-      print()
+      #print()
         
     # End of File - if a program is missing the EoP token, the lexer knows
     if(self.contents[len(self.contents)-1] != '$'):
       print("WARNING Lexer - Warning:",self.lineNum,":",self.linePos," End of Program symbol missing: $")
+      print("INFO Lexer - Lex completed with ",errorCount," errors\n\n")
+    elif inQuotes:
+      print("ERROR Lexer - Error: End Quote Missing")
+      errorCount += 1
       print("INFO Lexer - Lex completed with ",errorCount," errors\n\n")
     
     print("\nEoF")
