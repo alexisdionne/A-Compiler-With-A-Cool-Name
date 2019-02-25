@@ -9,7 +9,7 @@ To run my compiler:
 2) Navigate the the folder with the .py executable file and all other files from this repo.
 
 Windows
-3) Run the program in a terminal by typing Driver.py
+3) Run the program in a terminal by typing Driver.py [testfilename]
 
 Mac & Linux
-3) Run the program by typing python ./Driver.py
+3) Run the program by typing python ./Driver.py [testfilename]
