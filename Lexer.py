@@ -98,10 +98,9 @@ class Lexer:
     file = open(self.fileName, "r")
     self.contents = file.read()
     
-    # remove comments
-    self.contents = re.sub('/\*.*?\*/', '', self.contents, flags= re.S)
-    print ("Printing modified contents")
-    print (self.contents+"\n---------------------------------------------------------------------------\n")
+    # remove comments - nvm
+    # self.contents = re.sub('/\*.*?\*/', '', self.contents, flags= re.S)
+    print(self.contents+"\n---------------------------------------------------------------------------\n")
     
     # used for keeping track of when to stop printing INFO statements
     self.totalPrograms = self.contents.count('$')
@@ -173,6 +172,7 @@ class Lexer:
     index = 0         # the location in the DFA Table of the current character (if it has one)
     inQuotes = False  # all characters read until the next " are marked as char
     nextJump = 0      # used to determine if we should keep going or just accept the ID as an ID
+    inComment = False
     
     # variables for greedy algorithm
     lastPosition = 0        # the location of the last character that was recognized as a token
@@ -189,7 +189,7 @@ class Lexer:
       index = self.getIndexFromChar(currentChar)
       #print("index: ",index)
       
-      #print("Current Char: ",currentChar," lastPosition: ",lastPosition," CurrentPos: ", self.currentPos)
+      print("Current Char: ",currentChar," lastPosition: ",lastPosition," CurrentPos: ", self.currentPos)
       # when there is an unrecognized token, we gotta just move right past it, but with a report of course
       if index is None:
         #if lastPosition == self.currentPos:
@@ -225,7 +225,10 @@ class Lexer:
       #print("State before update: ",state)
       # update the states
       state = self.DFATable[state][index]
-      
+      print("State: ",state)
+      # we need the nextJump to determine later on if its worth continuing greedy grabs
+      if self.currentPos < len(self.contents):
+        nextJump = self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])]
       
       # if quotes are active, everything is a char until the next quote unless not in the language
       if inQuotes:
@@ -237,14 +240,25 @@ class Lexer:
           state = 36
         else:  
           state = 31
-      
+        
+      if inComment:
+        state = 3
+        print("STILL in comment")
+      # issa comment boiii
+      if state is 2 and nextJump is 3:
+        inComment = True
+        state = 3
+        print("COMMMMMMENT")
+      # no more comment sonn
+      elif inComment and state is 3 and nextJump is 2:
+        inComment = False
+        state = 0
+        print("END COMMENT")
       
       # assume the first character we see is an id until proven otherwise
-      if(index < 26 and lastAcceptingState == 0 and inQuotes == False):
+      if(index < 26 and lastAcceptingState is 0 and inQuotes is False and inComment is False):
         lastAcceptingState = 35
         lastPosition = self.currentPos
-        # we need the nextJump to determine later on if its worth continuing greedy grabs
-        nextJump = self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])]
       
       
       # determine if the lastAcceptingState we have is the best one
