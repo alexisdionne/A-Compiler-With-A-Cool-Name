@@ -189,7 +189,7 @@ class Lexer:
       index = self.getIndexFromChar(currentChar)
       #print("index: ",index)
       
-      print("Current Char: ",currentChar," lastPosition: ",lastPosition," CurrentPos: ", self.currentPos)
+      #print("Current Char: ",currentChar," lastPosition: ",lastPosition," CurrentPos: ", self.currentPos)
       # when there is an unrecognized token, we gotta just move right past it, but with a report of course
       if index is None:
         #if lastPosition == self.currentPos:
@@ -225,7 +225,7 @@ class Lexer:
       #print("State before update: ",state)
       # update the states
       state = self.DFATable[state][index]
-      print("State: ",state)
+      #print("State: ",state)
       # we need the nextJump to determine later on if its worth continuing greedy grabs
       if self.currentPos < len(self.contents):
         nextJump = self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])]
@@ -238,22 +238,26 @@ class Lexer:
           print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Character: ",currentChar)
           errorCount += 1
           state = 36
+        elif index is 40 and self.getIndexFromChar(self.contents[self.currentPos + 1]) is 41:
+          inComment = True
         else:  
           state = 31
         
       if inComment:
         state = 3
-        print("STILL in comment")
+        #print("STILL in comment")
       # issa comment boiii
-      if state is 2 and nextJump is 3:
+      #if state is 2 and nextJump is 3:
+      if index is 40 and self.getIndexFromChar(self.contents[self.currentPos + 1]) is 41:
         inComment = True
         state = 3
-        print("COMMMMMMENT")
+        #print("COMMMMMMENT")
       # no more comment sonn
-      elif inComment and state is 3 and nextJump is 2:
+      #elif inComment and state is 3 and nextJump is 2:
+      elif inComment and index is 41 and self.getIndexFromChar(self.contents[self.currentPos + 1]) is 40:
         inComment = False
         state = 0
-        print("END COMMENT")
+       # print("END COMMENT")
       
       # assume the first character we see is an id until proven otherwise
       if(index < 26 and lastAcceptingState is 0 and inQuotes is False and inComment is False):
