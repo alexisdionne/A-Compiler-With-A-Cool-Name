@@ -44,6 +44,7 @@ class Lexer:
     # a list of available symbols to stop at when lexing
     self.symbols = [1,4,5,6,12,13,15,26,33,34]
     
+    
     # And a dictionary of movements through the DFA
     
     # 0 indicates an error state
@@ -99,7 +100,8 @@ class Lexer:
     self.contents = file.read()
     
     # remove comments - nvm
-    # self.contents = re.sub('/\*.*?\*/', '', self.contents, flags= re.S)
+    # self.contents = re.sub("/\*.*\*/", "", self.contents)
+    #self.contents = re.sub(" ", "", self.contents)
     print(self.contents+"\n---------------------------------------------------------------------------\n")
     
     # used for keeping track of when to stop printing INFO statements
@@ -189,7 +191,7 @@ class Lexer:
       index = self.getIndexFromChar(currentChar)
       #print("index: ",index)
       
-      #print("Current Char: ",currentChar," lastPosition: ",lastPosition," CurrentPos: ", self.currentPos)
+      print("Current Char: ",currentChar," lastPosition: ",lastPosition," CurrentPos: ", self.currentPos)
       # when there is an unrecognized token, we gotta just move right past it, but with a report of course
       if index is None:
         #if lastPosition == self.currentPos:
@@ -222,42 +224,40 @@ class Lexer:
       self.currentPos += 1
       self.linePos += 1
       
-      #print("State before update: ",state)
+      
       # update the states
       state = self.DFATable[state][index]
-      #print("State: ",state)
-      # we need the nextJump to determine later on if its worth continuing greedy grabs
-      if self.currentPos < len(self.contents):
-        nextJump = self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])]
+      print("State: ",state)
       
+      #print("Current Char: ",currentChar,"prev char: ",self.contents[self.currentPos-1])
+      #if index is 40 and self.getIndexFromChar(self.contents[self.currentPos + 1]) is 41:
+      if currentChar is "/" and self.contents[self.currentPos] is "*":
+        if lastAcceptingState not in self.accepting:
+          inComment = True
+          state = 3
+          #print("COMMMMMMENT")
+      elif inComment:
+        state = 3
+        
       # if quotes are active, everything is a char until the next quote unless not in the language
-      if inQuotes:
+      if inQuotes and not inComment:
         if currentChar == '"':
           state = 15
+        elif currentChar is "/" and self.contents[self.currentPos - 2] is "*":
+          # just left a comment and now we gotta skip the /
+          state = 3
         elif index > 25 and index != 46:
           print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Character: ",currentChar)
           errorCount += 1
           state = 36
-        elif index is 40 and self.getIndexFromChar(self.contents[self.currentPos + 1]) is 41:
-          inComment = True
         else:  
           state = 31
         
-      if inComment:
-        state = 3
-        #print("STILL in comment")
-      # issa comment boiii
-      #if state is 2 and nextJump is 3:
-      if index is 40 and self.getIndexFromChar(self.contents[self.currentPos + 1]) is 41:
-        inComment = True
-        state = 3
-        #print("COMMMMMMENT")
       # no more comment sonn
-      #elif inComment and state is 3 and nextJump is 2:
-      elif inComment and index is 41 and self.getIndexFromChar(self.contents[self.currentPos + 1]) is 40:
+      if inComment and currentChar is "*" and self.contents[self.currentPos] is "/":
         inComment = False
         state = 0
-       # print("END COMMENT")
+        #print("END COMMENT")
       
       # assume the first character we see is an id until proven otherwise
       if(index < 26 and lastAcceptingState is 0 and inQuotes is False and inComment is False):
@@ -276,7 +276,8 @@ class Lexer:
           inQuotes = False 
           state = 15
           #print("exit QUOTES")
-          
+        
+        
         # a keyword is preferable, so if it already happened, we don't need a new one
         if(not lastAcceptingState in self.keywords):
           # found a keyword that matched the first char of the current grouping
@@ -293,7 +294,8 @@ class Lexer:
               lastAcceptingState = 35
               # we want to go to 0 in case this ID is also the begining of a keyword
               # this accomplishes less useless processing until reaching a symbol
-              if nextJump is 0:
+              # we need the nextJump to determine later on if its worth continuing greedy grabs
+              if self.currentPos < len(self.contents) and self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])] is 0:
                 state = 0
               #print("Accepted ID")
             else:
@@ -313,9 +315,9 @@ class Lexer:
                   lastAcceptingState = state
                   lastPosition = self.currentPos
                   #print("Accepted Char")
-        
-        
-      if(state in self.symbols or state == 31 or state == 14):
+                  
+      #print(" state: ",state)  
+      if(state in self.symbols or state == 31 or state == 14 or lastAcceptingState in self.accepting and index is 40):
         # consume + emit found
         #print("symbol found, processing token")
         # CHAR, DIGIT, and ID get special printing since they are ranges
@@ -330,26 +332,26 @@ class Lexer:
             print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n\n")
           errorCount = 0
           programCount += 1
+          #print(programCount, "total = ",self.totalPrograms)
           # watch out for no more programs
-          if(programCount >= self.totalPrograms and self.contents[len(self.contents)-1] != '$'):
+          if programCount <= self.totalPrograms: # and self.contents[len(self.contents)-1] != '$'):
             print("INFO Lexer - Lexing program ",programCount,"...")
         else:
           print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.accepting[lastAcceptingState][1]+" ] found at (",self.lineNum,":",self.linePos,")")
-          
         # reset the pointers
         self.currentPos = lastPosition
         state = 0
         lastAcceptingState = 0
         
-      #print()
-        
     # End of File - if a program is missing the EoP token, the lexer knows
     if(self.contents[len(self.contents)-1] != '$'):
       print("WARNING Lexer - Warning:",self.lineNum,":",self.linePos," End of Program symbol missing: $")
-      print("INFO Lexer - Lex completed with ",errorCount," errors\n\n")
     elif inQuotes:
-      print("ERROR Lexer - Error: End Quote Missing")
+      print("ERROR Lexer - Error: Unterminated String")
       errorCount += 1
-      print("INFO Lexer - Lex completed with ",errorCount," errors\n\n")
+    elif inComment:
+      print("ERROR Lexer - Error: Unterminated Comment")
+      errorCount += 1
+    print("INFO Lexer - Lex completed with ",errorCount," errors\n\n")
     
     print("\nEoF")
