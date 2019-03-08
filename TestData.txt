@@ -52,8 +52,6 @@ print(a){print(a)}$
   d = ("string" != "string")
 }$
 
-/*    Bad Test Data     */
-
 {"$"}$
 
 {"two
@@ -69,8 +67,6 @@ lines"}$
 ~!@#$%^&*_+{}|:<>?[];',./
   bool ean d
 }$
-
-/*    Questionable Test Data     */
 
 {int a /* unterminated comment }$
 
