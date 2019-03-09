@@ -2,6 +2,8 @@
 # Compiler Project 2 - Parser
 # 3/6/19
 
+from Token import Token
+
 class Parser:
 
   # the parser will determine if the program makes sense with the grammar
@@ -42,3 +44,72 @@ class Parser:
       parseBlock()
       
   def parsePrint():
+    matchAndConsume(firstOfPrint)
+    matchAndConsume("(")
+    parseExpr()
+    matchAndConsume(")")
+  
+  def parseAssignment():
+    parseId()
+    matchAndConsume("=")
+    parseExpr()
+  
+  def parseVarDecl():
+    matchAndConsume("TYPE") # not the real thing, just a place holder
+    parseId()
+  
+  def parseWhile():
+    matchAndConsume(firstOfWhile)
+    parseBooleanExpr()
+    parseBlock()
+  
+  def parseIf():
+    matchAndConsume(firstOfIf)
+    parseBooleanExpr()
+    parseBlock()
+    
+  def parseExpr():
+    if self.currentToken in firstOfIntExpr:
+      parseIntExpr()
+    elif self.currentToken in firstOfStringExpr:
+      parseStringExpr()
+    elif self.currentToken in firstOfBooleanExpr:
+      parseBooleanExpr()
+    elif self.currentToken in firstOfId:
+      parseId()
+      
+  def parseIntExpr():
+    matchAndConsume(firstOfDigit)
+    if self.nextToken is "+":
+      matchAndConsume("+")
+      parseExpr()
+    else:
+      # just the digit is consumed
+      
+  def parseStringExpr():
+    matchAndConsume('"')
+    parseCharList()
+    matchAndConsume('"')
+    
+  def parseBooleanExpr():
+    if self.currentToken is "(":
+      matchAndConsume("(")
+      parseExpr()
+      matchAndConsume(firstOfBoolop) # also a place holder
+      parseExpr()
+      matchAndConsume(")")
+    else:
+      matchAndConsume(firstOfBoolVal) # place holderrr
+  
+  def parseId():
+    matchAndConsume(firstOfChar)
+    
+  def parseCharList():
+    if self.currentToken in firstOfChar:
+      matchAndConsume(firstOfChar)
+      parseCharList()
+    elif self.currentToken in firstOfSpace:
+      matchAndConsume(firstOfSpace)
+      parseCharList()
+    else:
+      # epsilon production
