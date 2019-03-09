@@ -330,15 +330,16 @@ class Lexer:
           self.tokens.append(Token(self.lineNum, self.contents[lastPosition-1], self.accepting[lastAcceptingState][0]))
           if(errorCount == 0):
             print("INFO Lexer - Lex completed with 0 errors\n")
-            print("\nINFO Parser - Parsing program ",programCount,"...")
+            print("INFO Parser - Parsing program ",programCount,"...")
             # parse gets called here
             for x in self.tokens:
               print(x.type, " ", x.value)
               
             self.tokens.clear()
+            print("End of Parse")
           else:
-            print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n\n")
-            print("Skipping Parse...")
+            print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n")
+            print("Skipping Parse...\n")
           errorCount = 0
           programCount += 1
           #print(programCount, "total = ",self.totalPrograms)
@@ -353,15 +354,32 @@ class Lexer:
         state = 0
         lastAcceptingState = 0
         
+        
+    printOnceMore = False # will print one last info string if any of these fail
     # End of File - if a program is missing the EoP token, the lexer knows
     if(self.contents[len(self.contents)-1] != '$'):
       print("WARNING Lexer - Warning:",self.lineNum,":",self.linePos," End of Program symbol missing: $")
+      printOnceMore = True
     elif inQuotes:
       print("ERROR Lexer - Error: Unterminated String")
       errorCount += 1
+      printOnceMore = True
     elif inComment:
       print("ERROR Lexer - Error: Unterminated Comment")
       errorCount += 1
-    #print("INFO Lexer - Lex completed with ",errorCount," errors\n\n")
-    
+      printOnceMore = True
+    if printOnceMore:
+      if errorCount is 0:
+        print("INFO Lexer - Lex completed with 0 errors\n\n")
+        print("INFO Parser - Parsing program ",programCount,"...")
+        # parse gets called here
+        for x in self.tokens:
+          print(x.type, " ", x.value)
+          
+        self.tokens.clear()
+        print("End of Parse")
+      else:
+        print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n")
+        print("Skipping Parse...\n")
+        
     print("\nEoF")

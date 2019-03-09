@@ -1,8 +1,6 @@
 # Alexis Dionne
 # Compiler Project 1 - Tokens
-# 2/6/19
-
-
+# 3/6/19
 
 class Token:
   # defines a token object to pass along through the compiler
