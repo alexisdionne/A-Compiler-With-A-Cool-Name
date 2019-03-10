@@ -2,6 +2,7 @@
 # Compiler Project 1 - Lex
 # 2/6/19
 import re
+from Token import Token
 
 class Lexer:
   # Lexer contains all methods and 
@@ -14,6 +15,8 @@ class Lexer:
     self.linePos = 0
     self.contents = ""
     self.totalPrograms = 1
+    
+    self.tokens = []
     
     # accepting states available to identify tokens
     self.accepting = {
@@ -44,8 +47,6 @@ class Lexer:
     # a list of available symbols to stop at when lexing
     self.symbols = [1,4,5,6,12,13,15,26,33,34]
     
-    # And a dictionary of movements through the DFA
-    
     # 0 indicates an error state
     # go to state 2 if a / is found to check for * in any other state as comments may appear anywhere
     # all characters have the same accepting state, and need to be checked for a follow up char
@@ -53,13 +54,13 @@ class Lexer:
     # [ a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, {, }, (, ), /, *, =, !, +, $,  ,\n, "],
       [ 0, 2, 0, 0, 0, 2, 0, 0,21, 0, 0, 0, 0, 0, 0, 7, 0, 0, 2, 2, 0, 0,16, 0, 0, 0,14,14,14,14,14,14,14,14,14,14, 4, 5,12,13, 2, 0,24,25, 1, 6, 0, 0,15],  #0
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #1  - + accepting state
-      [ 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 7, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0],  #2  - going into comment - s -> t
+      [16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 7, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0],  #2  - going into comment - s -> t
       [ 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 3, 3, 3, 3, 3],  #3  - comment found
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #4  - { accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #5  - } accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #6  - $ accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 8, 0, 0, 8, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #7  - p
-      [ 0, 0, 0, 0,32, 0, 0, 0, 9, 0, 0, 9, 0, 0, 0, 0, 0, 0,10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #8  - r
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 9, 0, 0, 0, 0, 0, 0,10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #8  - r
       [ 0, 0, 0, 0,10, 0, 0, 0, 0, 0, 0, 0, 0,10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #9  - i
       [16, 0, 0, 0,30, 0,27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #10 - n
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #11 - t - print accepting state
@@ -67,9 +68,9 @@ class Lexer:
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #13 - ) accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #14 - digit accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #15 - " accepting state
-      [ 0, 0, 0, 0, 0, 0, 0,17, 0, 0, 0, 0, 0,29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #16 - w
-      [ 0, 0, 0, 0, 0, 0, 0, 0,18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #17 - h
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #18 - i
+      [ 0, 0, 0, 0, 0, 0, 0,17, 0, 0, 0,17, 0,29, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #16 - w
+      [ 0, 0, 0, 0, 0, 0, 0, 0,18, 0, 0, 0, 0, 0, 0, 0, 0, 0,18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #17 - h
+      [ 0, 0, 0, 0,32, 0, 0, 0, 0, 0, 0,19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #18 - i
       [ 0, 0, 0, 0,20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #19 - l
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #20 - e - while accepting state
       [ 0, 0, 0, 0, 0,28, 0, 0, 0, 0, 0, 0, 0,22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #21 - i
@@ -83,7 +84,7 @@ class Lexer:
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #29 - boolean accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #30 - false accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #31 - char accepting state
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #32 - true accepting state
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #32 - true accepting state 
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #33 - == accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #34 - = (assignment) accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #35 - ID accepting state
@@ -99,7 +100,8 @@ class Lexer:
     self.contents = file.read()
     
     # remove comments - nvm
-    # self.contents = re.sub('/\*.*?\*/', '', self.contents, flags= re.S)
+    # self.contents = re.sub("/\*.*\*/", "", self.contents)
+    #self.contents = re.sub(" ", "", self.contents)
     print(self.contents+"\n---------------------------------------------------------------------------\n")
     
     # used for keeping track of when to stop printing INFO statements
@@ -222,42 +224,40 @@ class Lexer:
       self.currentPos += 1
       self.linePos += 1
       
-      #print("State before update: ",state)
+      
       # update the states
       state = self.DFATable[state][index]
       #print("State: ",state)
-      # we need the nextJump to determine later on if its worth continuing greedy grabs
-      if self.currentPos < len(self.contents):
-        nextJump = self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])]
       
+      #print("Current Char: ",currentChar,"prev char: ",self.contents[self.currentPos-1])
+      #if index is 40 and self.getIndexFromChar(self.contents[self.currentPos + 1]) is 41:
+      if currentChar is "/" and self.contents[self.currentPos] is "*":
+        if lastAcceptingState not in self.accepting:
+          inComment = True
+          state = 3
+          #print("COMMMMMMENT")
+      elif inComment:
+        state = 3
+        
       # if quotes are active, everything is a char until the next quote unless not in the language
-      if inQuotes:
+      if inQuotes and not inComment:
         if currentChar == '"':
           state = 15
+        elif currentChar is "/" and self.contents[self.currentPos - 2] is "*":
+          # just left a comment and now we gotta skip the /
+          state = 3
         elif index > 25 and index != 46:
           print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Character: ",currentChar)
           errorCount += 1
           state = 36
-        elif index is 40 and self.getIndexFromChar(self.contents[self.currentPos + 1]) is 41:
-          inComment = True
         else:  
           state = 31
         
-      if inComment:
-        state = 3
-        #print("STILL in comment")
-      # issa comment boiii
-      #if state is 2 and nextJump is 3:
-      if index is 40 and self.getIndexFromChar(self.contents[self.currentPos + 1]) is 41:
-        inComment = True
-        state = 3
-        #print("COMMMMMMENT")
       # no more comment sonn
-      #elif inComment and state is 3 and nextJump is 2:
-      elif inComment and index is 41 and self.getIndexFromChar(self.contents[self.currentPos + 1]) is 40:
+      if inComment and currentChar is "*" and self.contents[self.currentPos] is "/":
         inComment = False
         state = 0
-       # print("END COMMENT")
+        #print("END COMMENT")
       
       # assume the first character we see is an id until proven otherwise
       if(index < 26 and lastAcceptingState is 0 and inQuotes is False and inComment is False):
@@ -276,7 +276,8 @@ class Lexer:
           inQuotes = False 
           state = 15
           #print("exit QUOTES")
-          
+        
+        
         # a keyword is preferable, so if it already happened, we don't need a new one
         if(not lastAcceptingState in self.keywords):
           # found a keyword that matched the first char of the current grouping
@@ -293,7 +294,8 @@ class Lexer:
               lastAcceptingState = 35
               # we want to go to 0 in case this ID is also the begining of a keyword
               # this accomplishes less useless processing until reaching a symbol
-              if nextJump is 0:
+              # we need the nextJump to determine later on if its worth continuing greedy grabs
+              if self.currentPos < len(self.contents) and self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])] is 0:
                 state = 0
               #print("Accepted ID")
             else:
@@ -313,43 +315,72 @@ class Lexer:
                   lastAcceptingState = state
                   lastPosition = self.currentPos
                   #print("Accepted Char")
-        
-        
-      if(state in self.symbols or state == 31 or state == 14):
+                  
+      #print(" state: ",state)  
+      if(state in self.symbols or state == 31 or state == 14 or lastAcceptingState in self.accepting and index is 40):
         # consume + emit found
         #print("symbol found, processing token")
         # CHAR, DIGIT, and ID get special printing since they are ranges
         if(lastAcceptingState == 31 or lastAcceptingState == 14 or lastAcceptingState == 35):
           print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.contents[lastPosition-1]+" ] found at (",self.lineNum,":",self.linePos,")")
+          self.tokens.append(Token(self.lineNum, self.contents[lastPosition-1], self.accepting[lastAcceptingState][0]))
         # EoP symbol found
         elif(lastAcceptingState == 6): 
           print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+currentChar+" ] found at (",self.lineNum,":",self.linePos,")")
+          self.tokens.append(Token(self.lineNum, self.contents[lastPosition-1], self.accepting[lastAcceptingState][0]))
           if(errorCount == 0):
-            print("INFO Lexer - Lex completed with 0 errors\n\n")
+            print("INFO Lexer - Lex completed with 0 errors\n")
+            print("INFO Parser - Parsing program ",programCount,"...")
+            # parse gets called here
+            for x in self.tokens:
+              print(x.type, " ", x.value)
+              
+            self.tokens.clear()
+            print("End of Parse")
           else:
-            print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n\n")
+            print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n")
+            print("Skipping Parse...\n")
           errorCount = 0
           programCount += 1
+          #print(programCount, "total = ",self.totalPrograms)
           # watch out for no more programs
-          if(programCount >= self.totalPrograms and self.contents[len(self.contents)-1] != '$'):
-            print("INFO Lexer - Lexing program ",programCount,"...")
+          if programCount <= self.totalPrograms: # and self.contents[len(self.contents)-1] != '$'):
+            print("\n\nINFO Lexer - Lexing program ",programCount,"...")
         else:
           print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.accepting[lastAcceptingState][1]+" ] found at (",self.lineNum,":",self.linePos,")")
-          
+          self.tokens.append(Token(self.lineNum, self.accepting[lastAcceptingState][1], self.accepting[lastAcceptingState][0]))
         # reset the pointers
         self.currentPos = lastPosition
         state = 0
         lastAcceptingState = 0
         
-      #print()
         
+    printOnceMore = False # will print one last info string if any of these fail
     # End of File - if a program is missing the EoP token, the lexer knows
     if(self.contents[len(self.contents)-1] != '$'):
       print("WARNING Lexer - Warning:",self.lineNum,":",self.linePos," End of Program symbol missing: $")
-      print("INFO Lexer - Lex completed with ",errorCount," errors\n\n")
+      printOnceMore = True
+      self.tokens.append(self.lineNum, "$", "EoP")
     elif inQuotes:
-      print("ERROR Lexer - Error: End Quote Missing")
+      print("ERROR Lexer - Error: Unterminated String")
       errorCount += 1
-      print("INFO Lexer - Lex completed with ",errorCount," errors\n\n")
-    
+      printOnceMore = True
+    elif inComment:
+      print("ERROR Lexer - Error: Unterminated Comment")
+      errorCount += 1
+      printOnceMore = True
+    if printOnceMore:
+      if errorCount is 0:
+        print("INFO Lexer - Lex completed with 0 errors\n\n")
+        print("INFO Parser - Parsing program ",programCount,"...")
+        # parse gets called here
+        for x in self.tokens:
+          print(x.type, " ", x.value)
+          
+        self.tokens.clear()
+        print("End of Parse")
+      else:
+        print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n")
+        print("Skipping Parse...\n")
+        
     print("\nEoF")
