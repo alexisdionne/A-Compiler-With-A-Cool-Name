@@ -3,6 +3,7 @@
 # 2/6/19
 import re
 from Token import Token
+from Parser import Parser
 
 class Lexer:
   # Lexer contains all methods and 
@@ -27,20 +28,21 @@ class Lexer:
       11: ["P_STMT", 'print'],  # print
       12: ["L_PAREN",'('],      # (
       13: ["R_PAREN",')'],      # )
-      14: ["DIGIT", '0'],       # 0-9 
+      14: ["DIGIT",  '0'],      # 0-9 
       15: ["QUOTE",  '"'],      # "
       20: ["W_STMT", 'while'],  # while
-      23: ["I_TYPE", 'int'],    # int
-      34: ["A_STMT", '='],      # =
-      26: ["BOOLOP",'!='], # != | ==
-      27: ["S_TYPE", 'string'], # string
+      23: ["TYPE",   'int'],    # int
+      26: ["BOOLOP", '!='],     # != | ==
+      27: ["TYPE",   'string'], # string
       28: ["I_STMT", 'if'],     # if
-      29: ["B_TYPE", 'boolean'],# boolean
-      30: ["B_VAL",'false'],    # false
-      31: ["CHAR", 'a'],        # a-z 
-      32: ["B_VAL",'true'],     # true
-      33: ["BOOLOP",'=='],      # ==
-      35: ["ID", 'a']           # single char id
+      29: ["TYPE",   'boolean'],# boolean
+      30: ["B_VAL",  'false'],  # false
+      31: ["CHAR",   'a'],      # a-z 
+      32: ["B_VAL",  'true'],   # true
+      33: ["BOOLOP", '=='],     # ==
+      34: ["A_STMT", '='],      # =
+      35: ["ID",     'a'],      # single char id
+      36: ["SPACE",  ' ']       # a space character
     }
     # a list of the keywords available in the grammar
     self.keywords = [11,20,23,27,28,29,30,32]
@@ -88,7 +90,8 @@ class Lexer:
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #33 - == accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #34 - = (assignment) accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #35 - ID accepting state
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]   #36 - ERROR STATE
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],   #36 - space accepting state
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       ]
     
     self.fileName = fileName
@@ -249,6 +252,8 @@ class Lexer:
         elif index > 25 and index != 46:
           print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Character: ",currentChar)
           errorCount += 1
+          state = 37
+        elif index is 46:
           state = 36
         else:  
           state = 31
@@ -335,6 +340,10 @@ class Lexer:
             for x in self.tokens:
               print(x.type, " ", x.value)
               
+            print()  
+            parseObj = Parser(self.tokens)
+            parseObj.parseProgram()
+            
             self.tokens.clear()
             print("End of Parse")
           else:
