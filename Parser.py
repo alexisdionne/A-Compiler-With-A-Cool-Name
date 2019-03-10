@@ -14,13 +14,26 @@ class Parser:
     self.currentToken = None    # the token we are currently trying to match
     self.nextToken = None       # one token look ahead
     self.tree = Tree()
+    self.errors = 0
     
     self.FIRST = {
-      "OfStatement" : [
+      "OfStatement" : ['P_STMT', 'CHAR', 'TYPE', 'W_STMT', 'I_STMT', 'L_BRACE'],
+      "OfBooleanExpr" : ['L_BRACE', 'B_VAL']
+    }
+    self.terminals = {
+      "CHAR" : ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'],
+      "DIGIT" : ['0','1','2','3','4','5','6','7','8','9'],
+      "TYPE" : ['int', 'string', 'boolean'],
+      "SPACE" : [' '],
+      "BOOLOP" : ['==', '!='],
+      "B_VAL" : ['false', 'true'],
+      "INTOP" : ['+']
     
   def matchAndConsume(expectedTokens):
     if self.currentToken in expectedTokens:
       self.tree.addNode(self.currentToken.name, "leaf")
+    else:
+      # report an error because our next movement is bupkis
     
   def parseProgram():
     print("Parsing Program ...")
@@ -39,7 +52,7 @@ class Parser:
   def parseStatementList():
 print("Parsing Statement List...")
     self.tree.addNode("Statement List", "branch")
-    if self.currentToken in self.FIRST["OfStatement"]:
+    if self.currentToken.type in self.FIRST["OfStatement"]:
       parseStatement()
       parseStatementList()
     else:
@@ -49,17 +62,17 @@ print("Parsing Statement List...")
   def parseStatement():
     print("Parsing Statement...")
     self.tree.addNode("Statement", "branch")
-    if self.currentToken in firstOfPrint:
+    if self.currentToken.type is 'P_STMT':
       parsePrint()
-    elif self.currentToken in firstOfAssigment:
+    elif self.currentToken.type is 'CHAR':
       parseAssignment()
-    elif self.currentToken in firstOfVarDecl:
+    elif self.currentToken.type is 'TYPE':
       parseVarDecl()
-    elif self.currentToken in firstOfWhile:
+    elif self.currentToken.type is 'W_STMT':
       parseWhile()
-    elif self.currentToken in firstOfIf:
+    elif self.currentToken.type is 'I_STMT':
       parseIf()
-    elif self.currentToken in firstOfBlock:
+    elif self.currentToken.type is 'L_BRACE':
       parseBlock()
     self.tree.returnToParent()
       
@@ -106,13 +119,13 @@ print("Parsing Statement List...")
   def parseExpr():
     print("Parsing Expr ...")
     self.tree.addNode("Expr", "branch")
-    if self.currentToken in firstOfIntExpr:
+    if self.currentToken.type is 'DIGIT':
       parseIntExpr()
-    elif self.currentToken in firstOfStringExpr:
+    elif self.currentToken.type is 'QUOTE':
       parseStringExpr()
-    elif self.currentToken in firstOfBooleanExpr:
+    elif self.currentToken.type in self.FIRST["OfBooleanExpr"]:
       parseBooleanExpr()
-    elif self.currentToken in firstOfId:
+    elif self.currentToken.type is 'ID':
       parseId()
     self.tree.returnToParent()
       
@@ -120,7 +133,7 @@ print("Parsing Statement List...")
     print("Parsing IntExpr...")
     self.tree.addNode("IntExpr", "branch")
     matchAndConsume(firstOfDigit)
-    if self.nextToken is "+":
+    if self.nextToken.type is "INTOP":
       matchAndConsume("+")
       parseExpr()
     else:
@@ -138,7 +151,7 @@ print("Parsing Statement List...")
   def parseBooleanExpr():
     print("Parsing BooleanExpr ...")
     self.tree.addNode("BooleanExpr", "branch")
-    if self.currentToken is "(":
+    if self.currentToken.type is "L_PAREN":
       matchAndConsume("(")
       parseExpr()
       matchAndConsume(firstOfBoolop) # also a place holder
@@ -157,11 +170,11 @@ print("Parsing Statement List...")
   def parseCharList():
     print("Parsing CharList ...")
     self.tree.addNode("CharList", "branch")
-    if self.currentToken in firstOfChar:
+    if self.currentToken.type in firstOfChar:
       matchAndConsume(firstOfChar)
       parseCharList()
-    elif self.currentToken in firstOfSpace:
-      matchAndConsume(firstOfSpace)
+    elif self.currentToken.type is "SPACE":
+      matchAndConsume(' ')
       parseCharList()
     else:
       # epsilon production
