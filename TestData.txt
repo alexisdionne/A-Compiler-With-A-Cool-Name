@@ -20,6 +20,8 @@
 
 print(a){print(a)}$
 
+{print(8 + 9 + 8 + ("hello" != "world"))}$
+
 {a=1}$
 
 {a = 1}$

@@ -183,220 +183,225 @@ class Lexer:
     lastPosition = 0        # the location of the last character that was recognized as a token
     lastAcceptingState = 0  # the last state, kept for printing
     
-    print("INFO Lexer - Lexing program ",programCount,"...")
-    currentChar = self.contents[0]
     
-    while(self.currentPos < len(self.contents)):
-    # loop while the program has not reached the end of the file string
-    
-      # update the current character and its position
-      currentChar = self.contents[self.currentPos]
-      index = self.getIndexFromChar(currentChar)
-      #print("index: ",index)
+    # check for an empty string
+    if len(self.contents) is not 0:
+      currentChar = self.contents[0]
+      print("INFO Lexer - Lexing program ",programCount,"...")
       
-      #print("Current Char: ",currentChar," lastPosition: ",lastPosition," CurrentPos: ", self.currentPos)
-      # when there is an unrecognized token, we gotta just move right past it, but with a report of course
-      if index is None and not inComment:
-        #if lastPosition == self.currentPos:
-        print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Token: "+currentChar)
-        errorCount += 1
-        # watch out for an error right at the end!
-        if(self.currentPos == len(self.contents)-1):
-          #print("last in the file?")
-          lastPosition += 1
-          self.currentPos += 1
-          self.linePos += 1
-          currentChar = self.contents[self.currentPos]
-          index = self.getIndexFromChar(currentChar)
-        # otherwise just ignore
-        else:
-          index = 46
-      elif index is 43 and self.contents[self.currentPos+1] is not "=":
-        print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Token: "+currentChar)
-        errorCount += 1
-      elif index is 41 and self.contents[self.currentPos+1] is not "/" and self.contents[self.currentPos-1] is not "/":
-        print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Token: "+currentChar)
-        errorCount += 1
-      elif inComment and index is None:
-        index = 46
+      while(self.currentPos < len(self.contents)):
+      # loop while the program has not reached the end of the file string
+      
+        # update the current character and its position
+        currentChar = self.contents[self.currentPos]
+        index = self.getIndexFromChar(currentChar)
+        #print("index: ",index)
         
-      
-      # increase the current line position for printing
-      if(currentChar == "\n"):
-        #print("New Line!")
-        self.lineNum += 1
-        self.linePos = 0
-      self.currentPos += 1
-      self.linePos += 1
-      
-      # update the states
-      state = self.DFATable[state][index]
-      if self.currentPos < len(self.contents):
-        nextState = self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])]
-      #print("  State: ",state)
-      
-      #print("Current Char: ",currentChar,"prev char: ",self.contents[self.currentPos-1])
-      #if index is 40 and self.getIndexFromChar(self.contents[self.currentPos + 1]) is 41:
-      if currentChar is "/" and self.contents[self.currentPos] is "*":
-        if lastAcceptingState not in self.accepting:
-          inComment = True
-          state = 3
-          #print("COMMMMMMENT")
-      elif inComment:
-        state = 3
-        
-      # if quotes are active, everything is a char until the next quote unless not in the language
-      if inQuotes and not inComment:
-        if currentChar == '"':
-          state = 15
-        elif currentChar is "/" and self.contents[self.currentPos - 2] is "*":
-          # just left a comment and now we gotta skip the /
-          state = 3
-        elif index > 25 and index != 46:
-          print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Character: ",currentChar)
+        #print("Current Char: ",currentChar," lastPosition: ",lastPosition," CurrentPos: ", self.currentPos)
+        # when there is an unrecognized token, we gotta just move right past it, but with a report of course
+        if index is None and not inComment:
+          #if lastPosition == self.currentPos:
+          print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Token: "+currentChar)
           errorCount += 1
-          state = 37
-        elif index is 46:
-          state = 36
-        else:  
-          state = 31
-        
-      # no more comment sonn
-      if inComment and currentChar is "*" and self.contents[self.currentPos] is "/":
-        inComment = False
-        state = 0
-        #print("END COMMENT")
-      
-      # assume the first character we see is an id until proven otherwise
-      if(index < 26 and lastAcceptingState is 0 and inQuotes is False and inComment is False):
-        lastAcceptingState = 35
-        lastPosition = self.currentPos
-      
-      if nextState is 33:
-        # look for a second = in the next place before moving on
-        # to catch the == operator
-        continue
-        
-      # determine if the lastAcceptingState we have is the best one
-      if(state in self.accepting or lastAcceptingState is 35):
-      
-        # this is within accepting states because it might effect a string if it came before
-        if(inQuotes == False and currentChar == '"'):
-          inQuotes = True
-          #print("entered QUOTES")
-        elif(inQuotes == True and currentChar == '"'):
-          inQuotes = False 
-          state = 15
-          #print("exit QUOTES")
-        
-        #print(" state: ",state,"  lastAcceptingState:",lastAcceptingState)  
-        # a keyword is preferable, so if it already happened, we don't need a new one
-        if(not lastAcceptingState in self.keywords):
-          # found a keyword that matched the first char of the current grouping
-          if(state in self.keywords and self.accepting[state][1][0] == self.contents[lastPosition-1]):
-            lastAcceptingState = state
-            lastPosition = self.currentPos
-            #print("LastPos:",lastPosition)
-            #print("Accepted Keyword")
-            state = 0
+          # watch out for an error right at the end!
+          if(self.currentPos == len(self.contents)-1):
+            #print("last in the file?")
+            lastPosition += 1
+            self.currentPos += 1
+            self.linePos += 1
+            currentChar = self.contents[self.currentPos]
+            index = self.getIndexFromChar(currentChar)
+          # otherwise just ignore
           else:
-            # found an id
-            if(index < 26 and inQuotes == False): 
-              #print("--found an id at ", lastPosition)
-              lastAcceptingState = 35
-              # we want to go to 0 in case this ID is also the begining of a keyword
-              # this accomplishes less useless processing until reaching a symbol
-              if self.currentPos < len(self.contents) and self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])] is 0:
-                state = 0
-              #print("Accepted ID")
-            else:
-              # found a symbol
-              if(state in self.symbols and lastAcceptingState != 35):
-                lastAcceptingState = state
-                lastPosition = self.currentPos
-                #print("Accepted Symbol")
-              else:
-                # found a digit
-                if(state == 14):
-                  lastAcceptingState = state
-                  lastPosition = self.currentPos
-                  #print("Accepted Digit")
-                # found a char or space
-                elif state is 31 or state is 36:
-                  lastAcceptingState = state
-                  lastPosition = self.currentPos
-                  #print("Accepted Char")
-                  
-      
-      if(state in self.symbols or lastAcceptingState in [14,31,35,36] or lastAcceptingState in self.accepting and index is 40):
-        # consume + emit found
-        #print("symbol found, processing token")
-        # CHAR, DIGIT, and ID get special printing since they are ranges
-        self.linePos = lastPosition
-        if(lastAcceptingState in [14,31,35,36]):
-          print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.contents[lastPosition-1]+" ] found at (",self.lineNum,":",self.linePos,")")
-          self.tokens.append(Token(self.lineNum, self.contents[lastPosition-1], self.accepting[lastAcceptingState][0]))
-        # EoP symbol found
-        elif(lastAcceptingState == 6): 
-          print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+currentChar+" ] found at (",self.lineNum,":",self.linePos,")")
-          self.tokens.append(Token(self.lineNum, self.contents[lastPosition-1], self.accepting[lastAcceptingState][0]))
-          if(errorCount == 0):
-            print("INFO Lexer - Lex completed with 0 errors\n")
-            print("INFO Parser - Parsing program ",programCount,"...")
-            # parse gets called here
-            for x in self.tokens:
-              print(x.type, " ", x.value)
-              
-            print()  
-            parseObj = Parser(self.tokens)
-            parseObj.parseProgram()
-            
-            self.tokens.clear()
-            print("End of Parse")
-          else:
-            print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n")
-            print("Skipping Parse...\n")
-          errorCount = 0
-          programCount += 1
-          #print(programCount, "total = ",self.totalPrograms) 
-          # watch out for no more programs
-          if programCount <= self.totalPrograms: # and self.contents[len(self.contents)-1] != '$'):
-            print("\n\nINFO Lexer - Lexing program ",programCount,"...")
-        else:
-          print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.accepting[lastAcceptingState][1]+" ] found at (",self.lineNum,":",self.linePos,")")
-          self.tokens.append(Token(self.lineNum, self.accepting[lastAcceptingState][1], self.accepting[lastAcceptingState][0]))
-        # reset the pointers
-        self.currentPos = lastPosition
-        state = 0
-        lastAcceptingState = 0
-        
-        
-    printOnceMore = False # will print one last info string if any of these fail
-    # End of File - if a program is missing the EoP token, the lexer knows
-    if(self.contents[lastPosition-1] != '$'):
-      print("WARNING Lexer - Warning:",self.lineNum,":",self.linePos," End of Program symbol missing: $")
-      printOnceMore = True
-      self.tokens.append(Token(self.lineNum, "$", "EoP"))
-    elif inQuotes:
-      print("ERROR Lexer - Error: Unterminated String")
-      errorCount += 1
-      printOnceMore = False
-    elif inComment:
-      print("ERROR Lexer - Error: Unterminated Comment")
-      errorCount += 1
-      printOnceMore = False
-    if printOnceMore:
-      if errorCount is 0:
-        print("INFO Lexer - Lex completed with 0 errors\n\n")
-        print("INFO Parser - Parsing program ",programCount,"...")
-        # parse gets called here
-        for x in self.tokens:
-          print(x.type, " ", x.value)
+            index = 46
+        elif index is 43 and self.contents[self.currentPos+1] is not "=":
+          print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Token: "+currentChar)
+          errorCount += 1
+        elif index is 41 and self.contents[self.currentPos+1] is not "/" and self.contents[self.currentPos-1] is not "/":
+          print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Token: "+currentChar)
+          errorCount += 1
+        elif inComment and index is None:
+          index = 46
           
-        self.tokens.clear()
-        print("End of Parse")
-      else:
-        print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n")
-        print("Skipping Parse...\n")
         
-    print("\nEoF")
+        # increase the current line position for printing
+        if(currentChar == "\n"):
+          #print("New Line!")
+          self.lineNum += 1
+          self.linePos = 0
+        self.currentPos += 1
+        self.linePos += 1
+        
+        # update the states
+        state = self.DFATable[state][index]
+        if self.currentPos < len(self.contents):
+          nextState = self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])]
+        #print("  State: ",state)
+        
+        #print("Current Char: ",currentChar,"prev char: ",self.contents[self.currentPos-1])
+        #if index is 40 and self.getIndexFromChar(self.contents[self.currentPos + 1]) is 41:
+        if currentChar is "/" and self.contents[self.currentPos] is "*":
+          if lastAcceptingState not in self.accepting:
+            inComment = True
+            state = 3
+            #print("COMMMMMMENT")
+        elif inComment:
+          state = 3
+          
+        # if quotes are active, everything is a char until the next quote unless not in the language
+        if inQuotes and not inComment:
+          if currentChar == '"':
+            state = 15
+          elif currentChar is "/" and self.contents[self.currentPos - 2] is "*":
+            # just left a comment and now we gotta skip the /
+            state = 3
+          elif index > 25 and index != 46:
+            print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Character: ",currentChar)
+            errorCount += 1
+            state = 37
+          elif index is 46:
+            state = 36
+          else:  
+            state = 31
+          
+        # no more comment sonn
+        if inComment and currentChar is "*" and self.contents[self.currentPos] is "/":
+          inComment = False
+          state = 0
+          #print("END COMMENT")
+        
+        # assume the first character we see is an id until proven otherwise
+        if(index < 26 and lastAcceptingState is 0 and inQuotes is False and inComment is False):
+          lastAcceptingState = 35
+          lastPosition = self.currentPos
+        
+        if nextState is 33:
+          # look for a second = in the next place before moving on
+          # to catch the == operator
+          continue
+          
+        #print(" state: ",state,"  lastAcceptingState:",lastAcceptingState)    
+        # determine if the lastAcceptingState we have is the best one
+        if(state in self.accepting or lastAcceptingState is 35):
+        
+          # this is within accepting states because it might effect a string if it came before
+          if(inQuotes == False and currentChar == '"'):
+            inQuotes = True
+            #print("entered QUOTES")
+          elif(inQuotes == True and currentChar == '"'):
+            inQuotes = False 
+            state = 15
+            #print("exit QUOTES")
+          
+          
+          # a keyword is preferable, so if it already happened, we don't need a new one
+          if(not lastAcceptingState in self.keywords):
+            # found a keyword that matched the first char of the current grouping
+            if(state in self.keywords and self.accepting[state][1][0] == self.contents[lastPosition-1]):
+              lastAcceptingState = state
+              lastPosition = self.currentPos
+              #print("LastPos:",lastPosition)
+              #print("Accepted Keyword")
+              state = 0
+            else:
+              # found an id
+              if(index < 26 and inQuotes == False): 
+                #print("--found an id at ", lastPosition)
+                lastAcceptingState = 35
+                # we want to go to 0 in case this ID is also the begining of a keyword
+                # this accomplishes less useless processing until reaching a symbol
+                if self.currentPos < len(self.contents) and self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])] is 0:
+                  state = 0
+                #print("Accepted ID")
+              else:
+                # found a symbol
+                if(state in self.symbols and lastAcceptingState != 35):
+                  lastAcceptingState = state
+                  lastPosition = self.currentPos
+                  #print("Accepted Symbol")
+                else:
+                  # found a digit
+                  if(state == 14):
+                    lastAcceptingState = state
+                    lastPosition = self.currentPos
+                    #print("Accepted Digit")
+                  # found a char or space
+                  elif state is 31 or state is 36:
+                    lastAcceptingState = state
+                    lastPosition = self.currentPos
+                    #print("Accepted Char")
+                    
+        
+        if(state in self.symbols or lastAcceptingState in [14,31,36] or lastAcceptingState in self.accepting and index is 40):
+          # consume + emit found
+          #print("symbol found, processing token")
+          # CHAR, DIGIT, and ID get special printing since they are ranges
+          self.linePos = lastPosition
+          if(lastAcceptingState in [14,31,35,36]):
+            print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.contents[lastPosition-1]+" ] found at (",self.lineNum,":",self.linePos,")")
+            self.tokens.append(Token(self.lineNum, self.contents[lastPosition-1], self.accepting[lastAcceptingState][0]))
+          # EoP symbol found
+          elif(lastAcceptingState == 6): 
+            print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+currentChar+" ] found at (",self.lineNum,":",self.linePos,")")
+            self.tokens.append(Token(self.lineNum, self.contents[lastPosition-1], self.accepting[lastAcceptingState][0]))
+            if(errorCount == 0):
+              print("INFO Lexer - Lex completed with 0 errors\n")
+              print("INFO Parser - Parsing program ",programCount,"...")
+              # parse gets called here
+              for x in self.tokens:
+                print(x.type, " ", x.value)
+                
+              print()  
+              parseObj = Parser(self.tokens)
+              parseObj.parseProgram()
+              
+              self.tokens.clear()
+              print("End of Parse")
+            else:
+              print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n")
+              print("Skipping Parse...\n")
+            errorCount = 0
+            programCount += 1
+            #print(programCount, "total = ",self.totalPrograms) 
+            # watch out for no more programs
+            if programCount <= self.totalPrograms: # and self.contents[len(self.contents)-1] != '$'):
+              print("\n\nINFO Lexer - Lexing program ",programCount,"...")
+          else:
+            print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.accepting[lastAcceptingState][1]+" ] found at (",self.lineNum,":",self.linePos,")")
+            self.tokens.append(Token(self.lineNum, self.accepting[lastAcceptingState][1], self.accepting[lastAcceptingState][0]))
+          # reset the pointers
+          self.currentPos = lastPosition
+          state = 0
+          lastAcceptingState = 0
+        
+        
+      printOnceMore = False # will print one last info string if any of these fail
+      # End of File - if a program is missing the EoP token, the lexer knows
+      if(self.contents[lastPosition-1] != '$'):
+        print("WARNING Lexer - Warning:",self.lineNum,":",self.linePos," End of Program symbol missing: $")
+        printOnceMore = True
+        self.tokens.append(Token(self.lineNum, "$", "EoP"))
+      elif inQuotes:
+        print("ERROR Lexer - Error: Unterminated String")
+        errorCount += 1
+        printOnceMore = False
+      elif inComment:
+        print("ERROR Lexer - Error: Unterminated Comment")
+        errorCount += 1
+        printOnceMore = False
+      if printOnceMore:
+        if errorCount is 0:
+          print("INFO Lexer - Lex completed with 0 errors\n\n")
+          print("INFO Parser - Parsing program ",programCount,"...")
+          # parse gets called here
+          for x in self.tokens:
+            print(x.type, " ", x.value)
+            
+          self.tokens.clear()
+          print("End of Parse")
+        else:
+          print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n")
+          print("Skipping Parse...\n")
+      print("\nEoF")
+    else:
+      print("No programs exist")
