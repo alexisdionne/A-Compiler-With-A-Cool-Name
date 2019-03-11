@@ -6,18 +6,21 @@
 class Tree():
   # Tree to map out CST of a program
   def __init__(self):
-    self.root = Node()
-    self.current = Node()
+    self.root = None
+    self.current = None
+    self.result = ""
     
   def addNode(self, name, kind):
     node = Node(name)
-    if self.root.name is "":
+    if self.root is None:
       # we are the root node rn
       self.root = node
     else:
       # we a kid
       node.parent = self.current
       self.current.children.append(node)
+      #print("PARENT:",node.parent.name)
+      #print("NODE:",node.name)
     
     # if we are an interior node
     if kind is "branch":
@@ -26,7 +29,8 @@ class Tree():
       
   def returnToParent(self):
     # move up to the parent node when we're done with this branch
-    if self.current.parent is not None and self.current.parent.name is not None:
+    if self.current.parent is not None:
+      print("returnToParent: from",self.current.name," to",self.current.parent.name)
       self.current = self.current.parent
     else:
       # error logging
@@ -34,28 +38,25 @@ class Tree():
       
   # method to print the tree
   def toString(self):
-    # initialize the result string
-    result = ""
-    
-    # recursive function to handle the expansion of the nodes
-    def expand(node, depth):
-      # add depth
-      for x in range(depth):
-        result += "-"
-      
-      # no children/leaf nodes
-      if not node.children or len(node.children) is 0:
-        result += "["+node.name+"]"
-        result += "\n"
-      # there are children so note these interior nodes and expand them
-      else:
-        result += "<"+node.name+">"
-        for x in range(len(node.children)):
-          expand(node.children[x], depth + 1)
-    
     # initial call to expand
-    expand(self.root, 0)
-    return result
+    self.expand(self.root, 0)
+    return self.result
+    
+  # recursive function to handle the expansion of the nodes
+  def expand(self, node, depth):
+    # add depth
+    for x in range(depth):
+      self.result += "-"
+    
+    # no children/leaf nodes
+    if not node.children or len(node.children) is 0:
+      self.result += "["+node.name+"]"
+      self.result += "\n"
+    # there are children so note these interior nodes and expand them
+    else:
+      self.result += "<"+node.name+">"
+      for x in range(len(node.children)):
+        self.expand(node.children[x], depth + 1)
     
     
 class Node():

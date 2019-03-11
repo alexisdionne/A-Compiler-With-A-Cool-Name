@@ -366,7 +366,7 @@ class Lexer:
         
     printOnceMore = False # will print one last info string if any of these fail
     # End of File - if a program is missing the EoP token, the lexer knows
-    if(self.contents[len(self.contents)-1] != '$'):
+    if(self.contents[lastPosition-1] != '$'):
       print("WARNING Lexer - Warning:",self.lineNum,":",self.linePos," End of Program symbol missing: $")
       printOnceMore = True
       self.tokens.append(self.lineNum, "$", "EoP")

@@ -18,8 +18,8 @@ class Parser:
     self.errors = 0
     
     self.FIRST = {
-      "OfStatement" : ['P_STMT', 'CHAR', 'TYPE', 'W_STMT', 'I_STMT', 'L_BRACE'],
-      "OfBooleanExpr" : ['L_BRACE', 'B_VAL']
+      "OfStatement" : ['P_STMT', 'ID', 'TYPE', 'W_STMT', 'I_STMT', 'L_BRACE'],
+      "OfBooleanExpr" : ['L_PAREN', 'B_VAL']
     }
     self.terminals = {
       "CHAR" : ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'],
@@ -44,8 +44,8 @@ class Parser:
   def matchAndConsume(self, expectedTokens):
     # determine if the current token is a fit
     # and then move on if it is
-    print("current token type is ",self.currentToken.type)
-    print("expected:",expectedTokens)
+    #print("current token type is ",self.currentToken.type)
+    #print("expected:",expectedTokens)
     if self.currentToken.value in expectedTokens:
       print("added leaf for currentToken: ",self.currentToken.value)
       self.tree.addNode(self.currentToken.value, "leaf")
@@ -57,7 +57,7 @@ class Parser:
           self.nextToken = self.tokenList[self.tracker + 1]
       else:
         print("end of token stream")
-        print("ROOT ?? ", self.tree.current.name)
+        #print("ROOT ?? ", self.tree.current.name)
     else:
       # report an error because our next movement is bupkis
       print(" !!! whoops, thats not what we expected")
@@ -65,7 +65,8 @@ class Parser:
       self.errors += 1
       # what does dispose of tree mean?
     #self.tree.returnToParent()
-    print("        CURRENT NODE: ", self.tree.current.name,"\n")#,"is",self.tree.current.parent.name)
+    #print("        CURRENT NODE: ", self.tree.current.name,"\n")#,"is",self.tree.current.parent.name)
+    
     
   def parseProgram(self):
     print("Parsing Program() ...")
@@ -75,6 +76,7 @@ class Parser:
     #print(self.tree.toString())
     print("ERROR COUNT:",self.errors)
     
+    
   def parseBlock(self):
     print("Parsing Block() ...")
     self.tree.addNode("Block", "branch")
@@ -82,6 +84,7 @@ class Parser:
     self.parseStatementList()
     self.matchAndConsume(self.terminals["R_BRACE"])
     self.tree.returnToParent()
+    
     
   def parseStatementList(self):
     print("Parsing Statement List() ...")
@@ -94,12 +97,13 @@ class Parser:
       print("stmtlist epsilon")
     self.tree.returnToParent()
   
+  
   def parseStatement(self):
     print("Parsing Statement() ...")
     self.tree.addNode("Statement", "branch")
     if self.currentToken.type is 'P_STMT':
       self.parsePrint()
-    elif self.currentToken.type is 'CHAR':
+    elif self.currentToken.type is 'ID':
       self.parseAssignment()
     elif self.currentToken.type is 'TYPE':
       self.parseVarDecl()
@@ -111,6 +115,7 @@ class Parser:
       self.parseBlock()
     self.tree.returnToParent()
       
+      
   def parsePrint(self):
     print("Parsing Print() ...")
     self.tree.addNode("Print", "branch")
@@ -120,6 +125,7 @@ class Parser:
     self.matchAndConsume(self.terminals["R_PAREN"])
     self.tree.returnToParent()
   
+  
   def parseAssignment(self):
     print("Parsing Assignment() ...")
     self.tree.addNode("Assignment", "branch")
@@ -128,12 +134,14 @@ class Parser:
     self.parseExpr()
     self.tree.returnToParent()
   
+  
   def parseVarDecl(self):
     print("Parsing VarDecl() ...")
     self.tree.addNode("VarDecl", "branch")
     self.matchAndConsume(self.terminals["TYPE"]) # not the real thing, just a place holder
     self.parseId()
     self.tree.returnToParent()
+  
   
   def parseWhile(self):
     print("Parsing While() ...")
@@ -143,6 +151,7 @@ class Parser:
     self.parseBlock()
     self.tree.returnToParent()
   
+  
   def parseIf(self):
     print("Parsing If() ...")
     self.tree.addNode("If", "branch")
@@ -150,6 +159,7 @@ class Parser:
     self.parseBooleanExpr()
     self.parseBlock()
     self.tree.returnToParent()
+    
     
   def parseExpr(self):
     print("Parsing Expr() ...")
@@ -164,6 +174,7 @@ class Parser:
       self.parseId()
     self.tree.returnToParent()
       
+      
   def parseIntExpr(self):
     print("Parsing IntExpr...")
     self.tree.addNode("IntExpr", "branch")
@@ -175,6 +186,7 @@ class Parser:
       print("intexpr epsilon")
     self.tree.returnToParent()
       
+      
   def parseStringExpr(self):
     print("Parsing StringExpr() ...")
     self.tree.addNode("String", "branch")
@@ -182,6 +194,7 @@ class Parser:
     self.parseCharList()
     self.matchAndConsume(self.terminals["QUOTE"])
     self.tree.returnToParent()
+    
     
   def parseBooleanExpr(self):
     print("Parsing BooleanExpr() ...")
@@ -196,11 +209,13 @@ class Parser:
       self.matchAndConsume(self.terminals["B_VAL"])
     self.tree.returnToParent()
   
+  
   def parseId(self):
     print("Parsing Id...")
     self.tree.addNode("Id", "branch")
     self.matchAndConsume(self.terminals["CHAR"])
     self.tree.returnToParent()
+    
     
   def parseCharList(self):
     print("Parsing CharList() ...")
