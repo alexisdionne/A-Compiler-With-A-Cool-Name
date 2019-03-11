@@ -12,8 +12,8 @@ class Lexer:
   def __init__(self, fileName=""):
     # Each lexer has a line and character position
     self.lineNum = 1
-    self.currentPos = 0
-    self.linePos = 0
+    self.currentPos = 0 # keeps track of place in string of input
+    self.linePos = 0  # keeps track of location in regards to the string structure
     self.contents = ""
     self.totalPrograms = 1
     
@@ -32,6 +32,7 @@ class Lexer:
       15: ["QUOTE",  '"'],      # "
       20: ["W_STMT", 'while'],  # while
       23: ["TYPE",   'int'],    # int
+      24: ["A_STMT", '='],      # =
       26: ["BOOLOP", '!='],     # != | ==
       27: ["TYPE",   'string'], # string
       28: ["I_STMT", 'if'],     # if
@@ -40,14 +41,13 @@ class Lexer:
       31: ["CHAR",   'a'],      # a-z 
       32: ["B_VAL",  'true'],   # true
       33: ["BOOLOP", '=='],     # ==
-      34: ["A_STMT", '='],      # =
       35: ["ID",     'a'],      # single char id
       36: ["SPACE",  ' ']       # a space character
     }
     # a list of the keywords available in the grammar
     self.keywords = [11,20,23,27,28,29,30,32]
     # a list of available symbols to stop at when lexing
-    self.symbols = [1,4,5,6,12,13,15,26,33,34]
+    self.symbols = [1,4,5,6,12,13,15,24,26,33]
     
     # 0 indicates an error state
     # go to state 2 if a / is found to check for * in any other state as comments may appear anywhere
@@ -78,7 +78,7 @@ class Lexer:
       [ 0, 0, 0, 0, 0,28, 0, 0, 0, 0, 0, 0, 0,22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #21 - i
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #22 - n 
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #23 - t - int accepting state
-      [34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34,34, 2,34,33,34,34,34,34,34,34],  #24 - =
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,33, 0, 0, 0, 0, 0, 0],  #24 - =
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,26, 0, 0, 0, 0, 0, 0],  #25 - !
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #26 - != accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #27 - string accepting state
@@ -90,7 +90,7 @@ class Lexer:
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #33 - == accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #34 - = (assignment) accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],  #35 - ID accepting state
-      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],   #36 - space accepting state
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  #36 - space accepting state
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       ]
     
@@ -106,7 +106,7 @@ class Lexer:
     # self.contents = re.sub("/\*.*\*/", "", self.contents)
     #self.contents = re.sub(" ", "", self.contents)
     print(self.contents+"\n---------------------------------------------------------------------------\n")
-    
+    #print(list(self.contents))
     # used for keeping track of when to stop printing INFO statements
     self.totalPrograms = self.contents.count('$')
     
@@ -194,9 +194,9 @@ class Lexer:
       index = self.getIndexFromChar(currentChar)
       #print("index: ",index)
       
-      #print("Current Char: ",currentChar," lastAccepting: ",lastAcceptingState," CurrentPos: ", self.currentPos)
+      #print("Current Char: ",currentChar," lastPosition: ",lastPosition," CurrentPos: ", self.currentPos)
       # when there is an unrecognized token, we gotta just move right past it, but with a report of course
-      if index is None:
+      if index is None and not inComment:
         #if lastPosition == self.currentPos:
         print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Token: "+currentChar)
         errorCount += 1
@@ -217,6 +217,8 @@ class Lexer:
       elif index is 41 and self.contents[self.currentPos+1] is not "/" and self.contents[self.currentPos-1] is not "/":
         print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Token: "+currentChar)
         errorCount += 1
+      elif inComment and index is None:
+        index = 46
         
       
       # increase the current line position for printing
@@ -227,10 +229,11 @@ class Lexer:
       self.currentPos += 1
       self.linePos += 1
       
-      
       # update the states
       state = self.DFATable[state][index]
-      #print("State: ",state)
+      if self.currentPos < len(self.contents):
+        nextState = self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])]
+      #print("  State: ",state)
       
       #print("Current Char: ",currentChar,"prev char: ",self.contents[self.currentPos-1])
       #if index is 40 and self.getIndexFromChar(self.contents[self.currentPos + 1]) is 41:
@@ -269,9 +272,13 @@ class Lexer:
         lastAcceptingState = 35
         lastPosition = self.currentPos
       
-      
+      if nextState is 33:
+        # look for a second = in the next place before moving on
+        # to catch the == operator
+        continue
+        
       # determine if the lastAcceptingState we have is the best one
-      if(state in self.accepting or lastAcceptingState == 35):
+      if(state in self.accepting or lastAcceptingState is 35):
       
         # this is within accepting states because it might effect a string if it came before
         if(inQuotes == False and currentChar == '"'):
@@ -282,7 +289,7 @@ class Lexer:
           state = 15
           #print("exit QUOTES")
         
-        #print(" state: ",state)  
+        #print(" state: ",state,"  lastAcceptingState:",lastAcceptingState)  
         # a keyword is preferable, so if it already happened, we don't need a new one
         if(not lastAcceptingState in self.keywords):
           # found a keyword that matched the first char of the current grouping
@@ -299,7 +306,6 @@ class Lexer:
               lastAcceptingState = 35
               # we want to go to 0 in case this ID is also the begining of a keyword
               # this accomplishes less useless processing until reaching a symbol
-              # we need the nextJump to determine later on if its worth continuing greedy grabs
               if self.currentPos < len(self.contents) and self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])] is 0:
                 state = 0
               #print("Accepted ID")
@@ -326,6 +332,7 @@ class Lexer:
         # consume + emit found
         #print("symbol found, processing token")
         # CHAR, DIGIT, and ID get special printing since they are ranges
+        self.linePos = lastPosition
         if(lastAcceptingState == 31 or lastAcceptingState == 14 or lastAcceptingState == 35):
           print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.contents[lastPosition-1]+" ] found at (",self.lineNum,":",self.linePos,")")
           self.tokens.append(Token(self.lineNum, self.contents[lastPosition-1], self.accepting[lastAcceptingState][0]))
@@ -351,7 +358,7 @@ class Lexer:
             print("Skipping Parse...\n")
           errorCount = 0
           programCount += 1
-          #print(programCount, "total = ",self.totalPrograms)
+          #print(programCount, "total = ",self.totalPrograms) 
           # watch out for no more programs
           if programCount <= self.totalPrograms: # and self.contents[len(self.contents)-1] != '$'):
             print("\n\nINFO Lexer - Lexing program ",programCount,"...")
@@ -369,15 +376,15 @@ class Lexer:
     if(self.contents[lastPosition-1] != '$'):
       print("WARNING Lexer - Warning:",self.lineNum,":",self.linePos," End of Program symbol missing: $")
       printOnceMore = True
-      self.tokens.append(self.lineNum, "$", "EoP")
+      self.tokens.append(Token(self.lineNum, "$", "EoP"))
     elif inQuotes:
       print("ERROR Lexer - Error: Unterminated String")
       errorCount += 1
-      printOnceMore = True
+      printOnceMore = False
     elif inComment:
       print("ERROR Lexer - Error: Unterminated Comment")
       errorCount += 1
-      printOnceMore = True
+      printOnceMore = False
     if printOnceMore:
       if errorCount is 0:
         print("INFO Lexer - Lex completed with 0 errors\n\n")
