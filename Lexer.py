@@ -321,19 +321,19 @@ class Lexer:
                   lastAcceptingState = state
                   lastPosition = self.currentPos
                   #print("Accepted Digit")
-                # found a char
-                elif(state == 31):
+                # found a char or space
+                elif state is 31 or state is 36:
                   lastAcceptingState = state
                   lastPosition = self.currentPos
                   #print("Accepted Char")
                   
       
-      if(state in self.symbols or state == 31 or state == 14 or lastAcceptingState in self.accepting and index is 40):
+      if(state in self.symbols or lastAcceptingState in [14,31,35,36] or lastAcceptingState in self.accepting and index is 40):
         # consume + emit found
         #print("symbol found, processing token")
         # CHAR, DIGIT, and ID get special printing since they are ranges
         self.linePos = lastPosition
-        if(lastAcceptingState == 31 or lastAcceptingState == 14 or lastAcceptingState == 35):
+        if(lastAcceptingState in [14,31,35,36]):
           print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.contents[lastPosition-1]+" ] found at (",self.lineNum,":",self.linePos,")")
           self.tokens.append(Token(self.lineNum, self.contents[lastPosition-1], self.accepting[lastAcceptingState][0]))
         # EoP symbol found
