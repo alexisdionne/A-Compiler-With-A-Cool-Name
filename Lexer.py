@@ -234,7 +234,7 @@ class Lexer:
         
         # update the states
         state = self.DFATable[state][index]
-        if self.currentPos < len(self.contents):
+        if self.currentPos < len(self.contents) and self.getIndexFromChar(self.contents[self.currentPos]) is not None:
           nextState = self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])]
         #print("  State: ",state)
         
@@ -346,13 +346,13 @@ class Lexer:
             self.tokens.append(Token(self.lineNum, self.contents[lastPosition-1], self.accepting[lastAcceptingState][0]))
             if(errorCount == 0):
               print("INFO Lexer - Lex completed with 0 errors\n")
+              print()
               print("INFO Parser - Parsing program ",programCount,"...")
               # parse gets called here
-              for x in self.tokens:
-                print(x.type, " ", x.value)
-                
-              print()  
-              parseObj = Parser(self.tokens)
+              #for x in self.tokens:
+                #print(x.type, " ", x.value)
+                  
+              parseObj = Parser(self.tokens,programCount)
               parseObj.parseProgram()
               
               self.tokens.clear()

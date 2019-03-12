@@ -11,28 +11,28 @@ class Tree():
     self.result = ""
     
   def addNode(self, name, kind):
-    node = Node(name)
+    node = Node(name, [], None)
     if self.root is None and not self.root:
       # we are the root node rn
       self.root = node
-      print("rooted")
+      #print("rooted")
     else:
       # we a kid
       self.current.children.append(node)
       node.parent = self.current
-      print("CURRENT:",self.current.name)
-      print("PARENT of NODE:",node.parent.name)
-      print("NODE:",node.name)
-      print("Kids of ",self.current.name,"++++++++")
-      for z in self.current.children:
-        print("<",z.name,">")
+      #("CURRENT:",self.current.name)
+      #print("PARENT of NODE:",node.parent.name)
+      #print("NODE:",node.name)
+      #print("Kids of ",self.current.name,"++++++++")
+      #for z in self.current.children:
+        #print("<",z.name,">")
     
     # if we are an interior node
     if kind is "branch":
       # update the current node pointer to ourselves
       self.current = node
-      if self.current.name:
-        print("BRanch to ",self.current.name)
+      #if self.current.name:
+        #print("BRanch to ",self.current.name)
     
     
       
@@ -56,17 +56,13 @@ class Tree():
     # add depth
     for x in range(depth):
       self.result += "-"
-    print("DEPTH: ",depth)
-    print("  RESULT: "+self.result)
-    for a in node.children: 
-      print(a.name)
     # no children/leaf nodes
     if len(node.children) is 0: #not node.children or 
       self.result += "["+node.name+"]"
       self.result += "\n"
     # there are children so note these interior nodes and expand them
     else:
-      self.result += "<"+node.name+">"
+      self.result += "<"+node.name+">\n"
       for i in range(len(node.children)):
         self.expand(node.children[i], depth + 1)
     
