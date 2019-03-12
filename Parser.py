@@ -63,8 +63,9 @@ class Parser:
       # report an error because our next movement is bupkis
       #print(" !!! whoops, thats not what we expected")
       #print("found a :", self.currentToken.value)
-      print("ERROR: Found a",self.currentToken.value," : Expected",expectedTokens)
-      self.errors += 1
+      if self.errors is 0:
+        print("ERROR: Found [",self.currentToken.value,"] ::  Expected ",expectedTokens)
+        self.errors += 1
       # what does dispose of tree mean?
     #self.tree.returnToParent()
     #print("        CURRENT NODE: ", self.tree.current.name,"\n")#,"is",self.tree.current.parent.name)
