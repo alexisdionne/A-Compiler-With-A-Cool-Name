@@ -321,6 +321,7 @@ class Lexer:
         if(state in self.symbols or lastAcceptingState in [14,31,36] or lastAcceptingState in self.accepting and index is 40):
           # consume + emit found token
           # call parse if we found a valid $
+          
           # CHAR, DIGIT, and ID get special printing since they are ranges
           if(lastAcceptingState in [14,31,35,36]):
             print("Lexer  DEBUG - "+self.accepting[lastAcceptingState][0]+" [ "+self.contents[lastPosition-1]+" ] found at (",self.lineNum,":",self.linePos,")")
@@ -331,7 +332,6 @@ class Lexer:
             self.tokens.append(Token(self.lineNum, self.contents[lastPosition-1], self.accepting[lastAcceptingState][0]))
             if(errorCount == 0):
               print("Lexer  INFO - Lex completed with 0 errors\n")
-              print()
               print("Parser INFO - Parsing program ",programCount,"...")
               # parse gets called here since Lex passed
               parseObj = Parser(self.tokens,programCount)
@@ -345,9 +345,8 @@ class Lexer:
               print("Skipping Parse...\n\n")
             errorCount = 0
             programCount += 1
-            #print(programCount, "total = ",self.totalPrograms) 
-            # watch out for no more programs
-            if programCount <= self.totalPrograms or lastPosition is not len(self.contents): # and self.contents[len(self.contents)-1] != '$'):
+            # watch out for no more programs or a lack of an EoP at the end
+            if programCount <= self.totalPrograms or lastPosition is not len(self.contents): 
               print("Lexer  INFO - Lexing program ",programCount,"...")
           else:
             print("Lexer  DEBUG - "+self.accepting[lastAcceptingState][0]+" [ "+self.accepting[lastAcceptingState][1]+" ] found at (",self.lineNum,":",self.linePos,")")
@@ -377,7 +376,7 @@ class Lexer:
         printOnceMore = False
       # it was just the warning, so theres one more to parse
       if printOnceMore and errorCount is 0:
-          print("Lexer  INFO - Lex completed with 0 errors\n\n")
+          print("Lexer  INFO - Lex completed with 0 errors\n")
           print("Parser INFO - Parsing program ",programCount,"...")
           
           parseObj = Parser(self.tokens,programCount)
