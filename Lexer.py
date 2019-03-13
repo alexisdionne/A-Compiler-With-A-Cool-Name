@@ -226,10 +226,10 @@ class Lexer:
           
         
         # increase the current line position for printing
-        if(currentChar == "\n"):
-          #print("New Line!")
-          self.lineNum += 1
-          self.linePos = 0
+        # if(currentChar == "\n"):
+          # print("New Line!")
+          # self.lineNum += 1
+          # self.linePos = 0
         self.currentPos += 1
         self.linePos += 1
         
@@ -296,8 +296,6 @@ class Lexer:
             inQuotes = False 
             state = 15
             #print("exit QUOTES")
-          
-          
           # a keyword is preferable, so if it already happened, we don't need a new one
           if(not lastAcceptingState in self.keywords):
             # found a keyword that matched the first char of the current grouping
@@ -336,22 +334,31 @@ class Lexer:
                     #print("Accepted Char")
                     
         
+        # regex to get position in string more reliably
+        if self.lineNum is not self.contents[0:lastPosition].count('\n') + 1:
+          # we update lineNum and reset linePos because a new \n was found
+          self.lineNum = self.contents[0:lastPosition].count('\n') + 1
+          self.linePos = 1
+          
+          
         if(state in self.symbols or lastAcceptingState in [14,31,36] or lastAcceptingState in self.accepting and index is 40):
-          # consume + emit found
+          # consume + emit found token
+          
+          #self.linePos = lastPosition - re.search("\n")
+          
           #print("symbol found, processing token")
           # CHAR, DIGIT, and ID get special printing since they are ranges
-          self.linePos = lastPosition
           if(lastAcceptingState in [14,31,35,36]):
-            print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.contents[lastPosition-1]+" ] found at (",self.lineNum,":",self.linePos,")")
+            print("Lexer  DEBUG - "+self.accepting[lastAcceptingState][0]+" [ "+self.contents[lastPosition-1]+" ] found at (",self.lineNum,":",self.linePos,")")
             self.tokens.append(Token(self.lineNum, self.contents[lastPosition-1], self.accepting[lastAcceptingState][0]))
           # EoP symbol found
           elif(lastAcceptingState == 6): 
-            print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+currentChar+" ] found at (",self.lineNum,":",self.linePos,")")
+            print("Lexer  DEBUG - "+self.accepting[lastAcceptingState][0]+" [ "+currentChar+" ] found at (",self.lineNum,":",self.linePos,")")
             self.tokens.append(Token(self.lineNum, self.contents[lastPosition-1], self.accepting[lastAcceptingState][0]))
             if(errorCount == 0):
-              print("INFO Lexer - Lex completed with 0 errors\n")
+              print("Lexer  INFO - Lex completed with 0 errors\n")
               print()
-              print("INFO Parser - Parsing program ",programCount,"...")
+              print("Parser INFO - Parsing program ",programCount,"...")
               # parse gets called here
               #for x in self.tokens:
                 #print(x.type, " ", x.value)
@@ -362,16 +369,16 @@ class Lexer:
               self.tokens.clear()
               print("End of Parse")
             else:
-              print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n")
+              print("Lexer  ERROR - Lex failed with ",errorCount," error(s)\n")
               print("Skipping Parse...\n")
             errorCount = 0
             programCount += 1
             #print(programCount, "total = ",self.totalPrograms) 
             # watch out for no more programs
             if programCount <= self.totalPrograms: # and self.contents[len(self.contents)-1] != '$'):
-              print("\n\nINFO Lexer - Lexing program ",programCount,"...")
+              print("\n\nLexer  INFO - Lexing program ",programCount,"...")
           else:
-            print("DEBUG  Lexer - "+self.accepting[lastAcceptingState][0]+" [ "+self.accepting[lastAcceptingState][1]+" ] found at (",self.lineNum,":",self.linePos,")")
+            print("Lexer  DEBUG - "+self.accepting[lastAcceptingState][0]+" [ "+self.accepting[lastAcceptingState][1]+" ] found at (",self.lineNum,":",self.linePos,")")
             self.tokens.append(Token(self.lineNum, self.accepting[lastAcceptingState][1], self.accepting[lastAcceptingState][0]))
           # reset the pointers
           self.currentPos = lastPosition
@@ -382,21 +389,21 @@ class Lexer:
       printOnceMore = False # will print one last info string if any of these fail
       # End of File - if a program is missing the EoP token, the lexer knows
       if(self.contents[lastPosition-1] != '$'):
-        print("WARNING Lexer - Warning:",self.lineNum,":",self.linePos," End of Program symbol missing: $")
+        print("Lexer  WARNING - Warning:",self.lineNum,":",self.linePos," End of Program symbol missing: $")
         printOnceMore = True
         self.tokens.append(Token(self.lineNum, "$", "EoP"))
       elif inQuotes:
-        print("ERROR Lexer - Error: Unterminated String")
+        print("Lexer  ERROR - Error: Unterminated String")
         errorCount += 1
         printOnceMore = False
       elif inComment:
-        print("ERROR Lexer - Error: Unterminated Comment")
+        print("Lexer  ERROR - Error: Unterminated Comment")
         errorCount += 1
         printOnceMore = False
       if printOnceMore:
         if errorCount is 0:
-          print("INFO Lexer - Lex completed with 0 errors\n\n")
-          print("INFO Parser - Parsing program ",programCount,"...")
+          print("Lexer  INFO - Lex completed with 0 errors\n\n")
+          print("Parser INFO - Parsing program ",programCount,"...")
           # parse gets called here
           for x in self.tokens:
             print(x.type, " ", x.value)
@@ -404,7 +411,7 @@ class Lexer:
           self.tokens.clear()
           print("End of Parse")
         else:
-          print("ERROR Lexer - Lex failed with ",errorCount," error(s)\n")
+          print("Lexer  ERROR - Lex failed with ",errorCount," error(s)\n")
           print("Skipping Parse...\n")
       print("\nEoF")
     else:

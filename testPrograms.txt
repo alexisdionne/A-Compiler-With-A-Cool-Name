@@ -1,0 +1,27 @@
+{print(h)}$
+
+{while(x == i){o = 1 + 0}}$
+
+{{{{{{{{}}}}}}}}}$
+
+{}$
+
+{print("hello world")
+int a 
+a=2+4
+while("helix" == (a != (2 == (false != "helix")))){
+if(h == p){
+h = 2 + "helix"
+boolean a 
+a = false
+string h
+h = "helix"
+}
+}
+}$
+
+{print(8 + 9 + 8 + ("hello" != "world"))}$
+
+print(a){print(a)}$
+
+{print(a + 1)}$

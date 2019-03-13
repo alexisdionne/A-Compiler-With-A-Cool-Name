@@ -63,9 +63,9 @@ class Parser:
       # report an error because our next movement is bupkis
       #print(" !!! whoops, thats not what we expected")
       #print("found a :", self.currentToken.value)
-      if self.errors is 0:
-        print("ERROR: Found [",self.currentToken.value,"] ::  Expected ",expectedTokens)
-        self.errors += 1
+      #if self.errors is 0:
+      print("Parser ERROR - Found [",self.currentToken.value,"] on line",self.currentToken.lineNumber," : Expected ",expectedTokens)
+      self.errors += 1
       # what does dispose of tree mean?
     #self.tree.returnToParent()
     #print("        CURRENT NODE: ", self.tree.current.name,"\n")#,"is",self.tree.current.parent.name)
@@ -77,9 +77,11 @@ class Parser:
     self.parseBlock()
     self.matchAndConsume(self.terminals["EoP"])
     if self.errors is 0:
+      print("Parse Succeeded with no errors")
       print("\nCST of Program",self.programNumber,"...")
       print(self.tree.toString())
-    print("ERROR COUNT:",self.errors)
+    else:
+      print("Parse failed with",self.errors,"error(s)")
     
     
   def parseBlock(self):
@@ -180,7 +182,7 @@ class Parser:
       
       
   def parseIntExpr(self):
-    print("Parsing IntExpr...")
+    print("Parsing IntExpr()")
     self.tree.addNode("IntExpr", "branch")
     self.matchAndConsume(self.terminals["DIGIT"])
     if self.currentToken.type is "INTOP":
@@ -215,7 +217,7 @@ class Parser:
   
   
   def parseId(self):
-    print("Parsing Id...")
+    print("Parsing Id()")
     self.tree.addNode("Id", "branch")
     self.matchAndConsume(self.terminals["CHAR"])
     self.tree.returnToParent()
