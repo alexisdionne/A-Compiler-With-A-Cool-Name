@@ -1,12 +1,12 @@
-{print(h)}$
+{/*1*/prnt(h)}$
 
-{while(x == i){o = 1 + 0}}$
+{/*2*/while(x == i){o = 1 + 0}}$
 
-{{{{{{{{}}}}}}}}}$
+{/*3*/{{{{{{{}}}}}}}}}$
 
-{}$
+{/*4*/}$
 
-{print("hello world")
+{/*5*/print("hello world")
 int a 
 a=2+4
 while("helix" == (a != (2 == (false != "helix")))){
@@ -20,8 +20,8 @@ h = "helix"
 }
 }$
 
-{print(8 + 9 + 8 + ("hello" != "world"))}$
+{/*6*/print(8 + 9 + 8 + ("hello" != "world"))}$
 
-print(a){print(a)}$
+print(a){/*7*/print(a)}$
 
-{print(a + 1)}$
+{/*8*/print(a + 1)}
