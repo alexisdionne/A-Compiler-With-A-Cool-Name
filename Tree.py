@@ -15,31 +15,21 @@ class Tree():
     if self.root is None and not self.root:
       # we are the root node rn
       self.root = node
-      #print("rooted")
     else:
-      # we a kid
+      # we are a kid and by default a leaf unless branch is specified
       self.current.children.append(node)
       node.parent = self.current
-      #("CURRENT:",self.current.name)
-      #print("PARENT of NODE:",node.parent.name)
-      #print("NODE:",node.name)
-      #print("Kids of ",self.current.name,"++++++++")
-      #for z in self.current.children:
-        #print("<",z.name,">")
-    
+      
     # if we are an interior node
     if kind is "branch":
       # update the current node pointer to ourselves
       self.current = node
-      #if self.current.name:
-        #print("BRanch to ",self.current.name)
     
     
       
   def returnToParent(self):
     # move up to the parent node when we're done with this branch
     if self.current.parent is not None:
-      #print("returnToParent: from",self.current.name," to",self.current.parent.name)
       self.current = self.current.parent
     else:
       # error logging
