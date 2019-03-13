@@ -1,0 +1,23 @@
+Alexis Dionne
+Project 2 - Parser
+3/12/19
+
+I didn't realize writing programs to test the functionality of my parser would be so difficult. It's mostly hard because after all of my analysis of the grammar I know how things are ~supposed~ to go. Not how they aren't.
+
+The ones I came up with are in testPrograms.txt. I also typed up all of the test cases from the Lexer that were used in grading; those are located in TestData.txt.
+
+I came up with 8 programs of my own, but one might actually be borrowed from the TestData because it starts with print instead of a block({). 
+
+All of my data works the way I expect it to. Fail or succeed. Including the printing or not printing of the Concrete Syntax Tree.
+
+In class this morning you mentioned the situation where there's an expression (a+1) which I caught on to and thought "hm.. I wonder how my compiler would do with that..". Surprise surprise, it threw an error like I expected! Yay!
+
+I'm not sure how much I was supposed to write, but I hope these anecdotes help keep it "informal". Hooray for a project done over a period of a week instead of one day!! WooHoo! 
+
+
+
+
+
+
+
+Also, I'm really enjoying this class and this project. I think it's a very good combination of what we learned in Theory of Programming Languages with the practical writing of a compiler. Looking forward to Semantic Analysis!

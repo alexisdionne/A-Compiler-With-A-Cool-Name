@@ -20,11 +20,15 @@
 
 print(a){print(a)}$
 
+{print(8 + 9 + 8 + ("hello" != "world"))}$
+
 {a=1}$
 
 {a = 1}$
 
 {a = 1 + 2  + 3   + 4    + 5     }$
+
+/*LongTestCase-EverythingExceptBooleanDeclaration*/{/*IntDeclaration*/intaintba=0b=0/*WhileLoop*/while(a!=3){print(a)while(b!=3){print(b)b=1+bif(b==2){/*PrintStatement*/print("there is no spoon"/*Thiswilldonothing*/)}}b=0a=1+a}}$
 
 {
   int a
@@ -68,7 +72,7 @@ lines"}$
   bool ean d
 }$
 
-{int a /* unterminated comment }$
+{int a /* unterminated comment */}$
 
 {intfintif=2}$
 
@@ -78,7 +82,7 @@ lines"}$
 
 {a=12}$
 
-{a = "unterminated string }$
+{a = "unterminated string "}$
 
 {thisisnotalexeme}$
 

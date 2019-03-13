@@ -1,5 +1,5 @@
 # Alexis Dionne
-# Compiler Project 1 - Tokens
+# Compiler Project 2 - Tokens
 # 3/6/19
 
 class Token:

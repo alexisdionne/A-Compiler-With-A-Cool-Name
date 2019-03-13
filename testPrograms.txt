@@ -1,0 +1,27 @@
+{/*1*/prnt(h)}$
+
+{/*2*/while(x == i){o = 1 + 0}}$
+
+{/*3*/{{{{{{{}}}}}}}}}$
+
+{/*4*/}$
+
+{/*5*/print("hello world")
+int a 
+a=2+4
+while("helix" == (a != (2 == (false != "helix")))){
+if(h == p){
+h = 2 + "helix"
+boolean a 
+a = false
+string h
+h = "helix"
+}
+}
+}$
+
+{/*6*/print(8 + 9 + 8 + ("hello" != "world"))}$
+
+print(a){/*7*/print(a)}$
+
+{/*8*/print(a + 1)}
