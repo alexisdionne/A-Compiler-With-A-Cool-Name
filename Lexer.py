@@ -385,7 +385,7 @@ class Lexer:
           self.tokens.clear()
           print("End of Parse")
       # the programmer didn't end something, so we tell them they failed
-      else:
+      elif printOnceMore and errorCount is not 0:
         print("Lexer  ERROR - Lex failed with ",errorCount," error(s)\n")
         print("Skipping Parse...\n")
       # reached the end of the file

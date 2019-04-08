@@ -6,6 +6,7 @@ import sys
 
 from Lexer import Lexer
 
-lexObj = Lexer(str(sys.argv[1]))
+print(str(sys.argv[-1]))
+lexObj = Lexer(str(sys.argv[-1]))
 lexObj.getFile()
 lexObj.verifyLex()
