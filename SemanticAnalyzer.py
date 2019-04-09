@@ -24,7 +24,7 @@ class Semantics:
     self.programNumber = programNumber
     
   def main(self):
-    # 1. make the AST
+    # 1. make the AST (check)
     # 2. check scope and type (depth first in order recursively)
       # a. search currentScope hash table for id + check if scope is good
       # b. search to check type
@@ -37,60 +37,6 @@ class Semantics:
     print("printing ast:")
     print(self.astString)
     
-    
-  '''def makeAST(self, node, depth):
-     # add depth
-    for x in range(depth):
-      self.result += "-"
-      self.astString += '-'
-    # no children/leaf nodes
-    if len(node.children) is 0: #not node.children or 
-      self.result += "["+node.name+"]"
-      self.result += "\n"
-      self.astString += "["+node.name+"]"
-      self.astString += "\n"
-    # there are children so note these interior nodes and expand them
-    else:
-      if node.name in self.nonTerminals:
-        if node.name is 'Print':
-          # child 2 is the Expr that could be anything
-          self.astString += "<"+node.name+">\n"
-          self.astPrint(node.children[2])
-        elif node.name is 'VarDecl':
-          self.astVarDecl(node)
-        elif node.name is 'Assignment':
-          self.astAssign(node)
-        elif node.name is 'IntExpr':
-          self.astInt(node)
-        elif node.name is 'BooleanExpr':
-          self.astBool(node)
-        elif node.name is 'String':
-          self.astString(node)
-        elif node.name is 'Block':
-          self.astBlock(node)
-        elif node.name is 'While':
-          self.astWhile(node)
-        elif node.name is 'If':
-          self.astIf(node)
-          
-      self.result += "<"+node.name+">\n"
-      
-      for i in range(len(node.children)):
-        self.makeAST(node.children[i], depth + 1)
-  
-  # traverse the pieces of a print statement
-  def astPrint(self, node):
-    self.ast.addNode('Print', 'branch')
-    if node.children[0].name is 'IntExpr':
-      self.astInt(node.children[0])
-    elif node.children[0].name is 'String':
-      self.astString(node.children[0])
-    elif node.children[0].name is 'BooleanExpr':
-      self.astBool(node.children[0])
-    elif node.children[0].name is 'Id':
-      self.ast.addNode(node.children[0].name, 'leaf')
-      '''
-      
   # recursive function to craft the AST from the CST
   def expand(self, node, depth):
     
@@ -150,23 +96,29 @@ class Semantics:
         self.ast.addNode(self.s, "leaf")
         self.s = ""
       elif node.name is 'Block':
+        # straight up has a favorite child, what a bad parent
         self.addDepth(depth)
         self.astString += "<Block>\n"
         self.ast.addNode("Block", "branch")
         self.expand(node.children[1], depth + 1)
       elif node.name is 'While':
+        # while has 2 kids to care for since they both grow up into bigger
+        # and better things
         self.addDepth(depth)
         self.astString += "<While>\n"
         self.ast.addNode("While", "branch")
-        self.expand(node.children[1], depth + 1)
-        self.expand(node.children[2], depth + 1)
+        self.expand(node.children[1], depth + 1) # grows up to be a booleanExpr
+        self.expand(node.children[2], depth + 1) # grows up to be a whole Block!
       elif node.name is 'If':
+        # pretty much the same as while (copycat)
         self.addDepth(depth)
         self.astString += "<If>\n"
         self.ast.addNode("If", "branch")
         self.expand(node.children[1], depth + 1)
         self.expand(node.children[2], depth + 1)
       else:
+        # otherwise the compiler doesn't give a hoot about this node, and 
+        # it moves on in search of a cooler child
         for i in range(len(node.children)):
           self.expand(node.children[i], depth)
           
