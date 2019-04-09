@@ -269,17 +269,10 @@ class Lexer:
           # to catch the == operator
           continue
           
-          
+        
         # determine if the lastAcceptingState we have is the best one
         if(state in self.accepting or lastAcceptingState is 35):
-        
-          # this is within accepting states because it might effect a string if it came before
-          if(inQuotes == False and currentChar == '"'):
-            inQuotes = True
-          elif(inQuotes == True and currentChar == '"'):
-            inQuotes = False 
-            state = 15
-            
+          
           # a keyword is preferable, so if it already happened, we don't need a new one
           if(not lastAcceptingState in self.keywords):
             # found a keyword that matched the first char of the current grouping
@@ -310,7 +303,13 @@ class Lexer:
                     lastAcceptingState = state
                     lastPosition = self.currentPos
                     
-        
+        # this is within accepting states because it might effect a string if it came before
+        if(inQuotes == False and lastAcceptingState is 15):
+          inQuotes = True
+        elif(inQuotes == True and lastAcceptingState is 15):
+          inQuotes = False 
+          state = 15
+          
         # regex to get position in string more reliably
         if self.lineNum is not self.contents[0:lastPosition].count('\n') + 1:
           # we update lineNum and reset linePos because a new \n was found
@@ -358,14 +357,8 @@ class Lexer:
         
         
       printOnceMore = False # will print one last info string if any of these fail
-      # End of File - if a program is missing the EoP token, the lexer knows
-      if(self.contents[lastPosition-1] != '$'):
-        print("Lexer  WARNING - Warning:",self.lineNum,":",self.linePos," End of Program symbol missing: $")
-        printOnceMore = True
-        # since its just a warning, we add the EoP token so that the rest passes
-        self.tokens.append(Token(self.lineNum, "$", "EoP"))
       # if we end while still in quotes - BIG ERROR
-      elif inQuotes:
+      if inQuotes:
         print("Lexer  ERROR - Error: Unterminated String")
         errorCount += 1
         printOnceMore = False
@@ -374,6 +367,13 @@ class Lexer:
         print("Lexer  ERROR - Error: Unterminated Comment")
         errorCount += 1
         printOnceMore = False
+      # End of File - if a program is missing the EoP token, the lexer knows
+      elif(self.contents[lastPosition-1] != '$'):
+        print("Lexer  WARNING - Warning:",self.lineNum,":",self.linePos," End of Program symbol missing: $")
+        printOnceMore = True
+        # since its just a warning, we add the EoP token so that the rest passes
+        self.tokens.append(Token(self.lineNum, "$", "EoP"))
+        
       # it was just the warning, so theres one more to parse
       if printOnceMore and errorCount is 0:
           print("Lexer  INFO - Lex completed with 0 errors\n")
