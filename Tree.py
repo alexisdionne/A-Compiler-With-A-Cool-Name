@@ -25,8 +25,7 @@ class Tree():
       # update the current node pointer to ourselves
       self.current = node
     
-    
-      
+  
   def returnToParent(self):
     # move up to the parent node when we're done with this branch
     if self.current.parent is not None:

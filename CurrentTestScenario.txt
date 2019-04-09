@@ -1,5 +1,1 @@
-{while "a"{
-  print("a")
-  }
-  print("done")
-}$
+{a=1+a if(true==false){print("hiwrld")}}$

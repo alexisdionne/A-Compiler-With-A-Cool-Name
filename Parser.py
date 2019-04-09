@@ -78,8 +78,8 @@ class Parser:
       # can't move on anywhere or print because this program made no sense
       print("Parse failed with",self.errors,"error(s)")
       
-    #semantics = Semantics(self.tokenList, self.tree, self.programNumber)
-    #semantics.main()
+    semantics = Semantics(self.tokenList, self.tree, self.programNumber)
+    semantics.main()
     
   def parseBlock(self):
     print("Parsing Block()")
@@ -97,7 +97,7 @@ class Parser:
     if self.currentToken.type in self.FIRST["OfStatement"]:
       self.parseStatement()
       self.parseStatementList()
-    elif self.currentToken.type not in self.FIRST["OfStatement"] and self.currentToken.type is not '}':
+    elif self.currentToken.type not in self.FIRST["OfStatement"] and self.currentToken.value is not '}':
       #not epsilon, and not right, so pass the things we were lookin for
       self.matchAndConsume(self.FIRST["OfStatement"])
   # else:  epsilon production - nothing happens
