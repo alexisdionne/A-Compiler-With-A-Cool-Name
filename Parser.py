@@ -62,10 +62,11 @@ class Parser:
     # every program starts with the program node
     print("Parsing Program()")
     self.tree.addNode("Program", "branch")
-    if len(self.tokenList) > 2:  # There are not {} which means regardless it will failed
+    if len(self.tokenList) > 2:  
       self.parseBlock()
       self.matchAndConsume(self.terminals["EoP"])
     else:
+      # There are not at least {} which means regardless it will fail
       self.errors += 1
       print("Parser ERROR - No tokens to parse")
     if self.errors is 0:
