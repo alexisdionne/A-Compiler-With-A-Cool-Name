@@ -2,8 +2,6 @@
 # Compiler Project 2 - Treeee
 # 3/9/19
 
-from Token import Variable
-
 class Tree():
   # Tree to map out CST of a program
   def __init__(self):
