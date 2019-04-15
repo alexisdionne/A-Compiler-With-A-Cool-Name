@@ -94,6 +94,3 @@ class HashNode():
       return 'Success'
     else:
       return 'Fail'
-
-  def printHashTable(h):
-    print(h.hashTable)
