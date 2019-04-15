@@ -9,3 +9,18 @@ class Token:
     self.lineNumber = lineNumber
     self.value = value
     self.type = type
+    
+class Variable:
+  type = ""
+  isInit = False
+  isUsed = False
+  value = ""
+  
+  def __init__(v, type, isInit, isUsed, value):
+    v.type = type
+    v.isInit = isInit
+    v.isUsed = isUsed
+    v.value = value
+    
+  def getType(v):
+    return v.type

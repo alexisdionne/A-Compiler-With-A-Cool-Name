@@ -2,6 +2,7 @@
 # Compiler Project 2 - Treeee
 # 3/9/19
 
+from Token import Variable
 
 class Tree():
   # Tree to map out CST of a program
@@ -12,6 +13,22 @@ class Tree():
     
   def addNode(self, name, kind):
     node = Node(name, [], None)
+    if self.root is None and not self.root:
+      # we are the root node rn
+      self.root = node
+    else:
+      # we are a kid and by default a leaf unless branch is specified
+      self.current.children.append(node)
+      node.parent = self.current
+      
+    # if we are an interior node
+    if kind is "branch":
+      # update the current node pointer to ourselves
+      self.current = node
+      
+  # same as addNode, but modified to have hash tables for scope
+  def addHashNode(self, name, kind, hasHash):
+    node = HashNode(name, [], None)
     if self.root is None and not self.root:
       # we are the root node rn
       self.root = node
@@ -64,3 +81,21 @@ class Node():
     n.children = children
     n.parent = parent
 
+class HashNode():
+  def __init__(h, name="", children=[], parent=None, hashTable={}):
+    h.name = name
+    h.children = children
+    h.parent = parent
+    h.hashTable = hashTable
+    
+  def addEntry(h, name, attributes):
+    # add a hash table entry
+    # attributes = [type, isInit, isUsed, value]
+    if name not in h.hashTable:
+      h.hashTable[name] = attributes
+      return 'Success'
+    else:
+      return 'Fail'
+
+  def printHashTable(h):
+    print(h.hashTable)

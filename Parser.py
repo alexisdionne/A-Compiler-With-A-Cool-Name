@@ -74,12 +74,14 @@ class Parser:
       # print CST because parse succeeded
       print("\nCST of Program",self.programNumber,"...")
       print(self.tree.toString())
+      
+      semantics = Semantics(self.tokenList, self.tree, self.programNumber)
+      semantics.main()
     else:
       # can't move on anywhere or print because this program made no sense
       print("Parse failed with",self.errors,"error(s)")
       
-    semantics = Semantics(self.tokenList, self.tree, self.programNumber)
-    semantics.main()
+    
     
   def parseBlock(self):
     print("Parsing Block()")
