@@ -12,6 +12,7 @@ class Semantics:
   ast = Tree()
   scopeTree = Tree()
   scopeCount = 0
+  scope = None
   tokenList = []
   errors = 0
   programNumber = 0
@@ -47,6 +48,7 @@ class Semantics:
     print(s.ast.toString())
     print()
     s.analyze(s.ast.root)
+    print(s.scopeTree.hashToString())
     s.astString = ''
     
   # recursive function to craft the AST from the CST
@@ -127,7 +129,8 @@ class Semantics:
         s.astString += "<Block>\n"
         s.ast.addNode("Block", "branch")
         s.expand(node.children[1], depth + 1)
-        s.ast.returnToParent()
+        if s.ast.root is not None:
+          s.ast.returnToParent()
       elif node.name is 'While':
         # while has 2 kids to care for since they both grow up into bigger
         # and better things
@@ -167,60 +170,66 @@ class Semantics:
       s.blockAnalysis(node.children[1])
     elif node.name is 'Print':
       s.printAnalysis(node.children[0])
-    # check scope
-    #checkScope()
-    # check type
-    #checkType()
     if len(node.children) is 0: # no kids so go up
       # not sure what goes here?
       print(node.name,"is a child")
         
     else:
-      print(node.name,"is a parent of",len(node.children),"children")
+      #print(node.name,"is a parent of",len(node.children),"children")
       for i in range(len(node.children)):
         s.analyze(node.children[i])
   
   def blockAnalysis(s, node):
+    #print('--BLOCK--')
     if s.scopeTree.root is not None:
       s.scopeCount += 1
-    s.scopeTree.addHashNode(s.scopeCount, 'branch', True)
-    print('block',s.scopeTree.current.name)
+    s.scopeTree.addHashNode(s.scopeCount, 'branch')
+    s.scope = s.scopeTree.current
+    #print('block',s.scopeTree.current.name)
   
   def varDeclAnalysis(s, node):
+    print('--VARDECL--')
     # add the variable declared to the current scope
     if s.scopeTree.current.addEntry(node.children[1].name, [node.children[0].name, False, False, None]) is 'Fail':
-      print('Failed to add',node.children[1].name,'to scope',scopeCount)
+      print('SEMANTICS ERROR - SCOPE:',node.children[1].name,'has already been declared in this scope')
       s.errors += 1
-    else:
-      print('Added',node.children[1].name)
-      print('new hash',s.scopeTree.current.hashTable)
+    #else:
+      #print('Added',node.children[1].name)
+      #print('new hash',s.scopeTree.current.hashTable)
   
   def assignmentAnalysis(s, node):
+    print('--ASSIGNMENT--')
     # check to see if the variable was declared and initialize it if type checks out
-    print('YOOOOOOOOOOOO',node.children[1].name)
+    #print('YOOOOOOOOOOOO',node.children[1].name)
+    s.checkScope(node.children[0].name, s.scopeTree.current)
+    #print(s.scope.hashTable)
     if node.children[1].name is 'BoolOp':
-      print('WENT IN HERE')
+      #print('WENT IN HERE')
       s.booleanAnalysis(node)
-      s.evalExpr(node, s.scopeTree.current.hashTable[node.children[0].name][0])
+      #print('\n right before eval again')
+      s.evalExpr(node.children[1], s.scope.hashTable[node.children[0].name][0])
+    elif s.scope is not None:
+      #print("in here!!!")
+      s.evalExpr(node, s.scope.hashTable[node.children[0].name][0])
     else:
-      s.evalExpr(node, s.scopeTree.current.hashTable[node.children[0].name][0])
+      print('SEMANTICS ERROR - SCOPE:',node.children[1].name,'does not exist in this scope')
+      s.errors += 1
+      
     if s.typeMatch is True:
-      s.scopeTree.current.hashTable[node.children[0].name][1] = True # isInit
-      #s.buildAssignmentStr(node.children[1])
-      #s.scopeTree.current.hashTable[node.children[0].name][3] = 
-      # print("Assigned",s.assignmentStr,"to",node.children[0].name)
-      # s.assignmentStr = ''
-      print('updated hash',s.scopeTree.current.hashTable[node.children[0].name])
+      s.scope.hashTable[node.children[0].name][1] = True # isInit
+      #print("updated hash of",node.children[0].name,":",s.scope.hashTable[node.children[0].name])
     else:
-      print("Failed to assign",node.children[1].name,"to",node.children[0].name)
+      print('SEMANTICS ERROR - TYPE:',node.children[1].name,'cannot be assigned to',node.children[0].name)
       s.errors += 1
   
   def booleanAnalysis(s, node):
-    print(node.name)
+    print('--BOOLEAN--')
+    s.checkScope(node.name, s.scopeTree.current)
+    #print(node.name)
     if len(node.children) is 0:
       #s.evalExpr(node, s.scopeTree.current.hashTable[node.children[0].name][0])
-      if node.name in s.scopeTree.current.hashTable:
-        s.evalExpr(node, s.scopeTree.current.hashTable[node.name][0])
+      if node.name in s.scope.hashTable:
+        s.evalExpr(node, s.scope.hashTable[node.name][0])
       elif node.name is 'true' or node.name is 'false':
         s.evalExpr(node, 'boolean')
       elif node.name in s.intList:
@@ -228,26 +237,40 @@ class Semantics:
       else:
         s.evalExpr(node, 'string')
         
-      if s.typeMatch is True and node.name in s.scopeTree.current.hashTable:
-        s.scopeTree.current.hashTable[node.name][2] = True #isUsed
-      elif s.typeMatch is True:
-        print(node.name," passed boolean analysis")
-      else:
+      if s.typeMatch is True and node.name in s.scope.hashTable:
+        if node.parent.children[0].name is not node.name:
+          # will only update to used if it is not the one being assigned
+          s.scope.hashTable[node.name][2] = True #isUsed
+      elif s.typeMatch is not True:
+        print('SEMANTICS ERROR - SCOPE:',node.name,'does not exist in this scope')
         s.errors += 1
-        print(node.name," is not declared anywhere")
     else:
       for i in range(len(node.children)):
         s.booleanAnalysis(node.children[i])
   
   def printAnalysis(s, node):
-    if node.name in s.scopeTree.current.hashTable:
-      s.evalExpr(node, s.scopeTree.current.hashTable[node.name][0])
+    print('--PRINT--')
+    s.checkScope(node.name, s.scopeTree.current)
+    if node.name in s.scope.hashTable:
+      s.evalExpr(node, s.scope.hashTable[node.name][0])
     elif node.name is 'true' or node.name is 'false':
       s.evalExpr(node, 'boolean')
     elif node.name in s.intList:
       s.evalExpr(node, 'int')
+    elif s.scope is None:
+      print('SEMANTICS ERROR - SCOPE:',node.name,'does not exist in this scope')
+      s.errors += 1
     else:
       s.evalExpr(node, 'string')
+      
+    if s.typeMatch is True:
+      # print succeeded and the id should be updated as used
+      s.checkScope(node.name, s.scopeTree.current)
+      s.scope.hashTable[node.name][2] = True
+    else:
+      print('SEMANTICS ERROR - TYPE:',node.name,'could not be printed')
+      s.errors += 1
+    #print("updated hash of'",node.name,"':" ,s.scope.hashTable[node.name])
     
 # helper functions         
   def addDepth(s, depth):
@@ -263,6 +286,48 @@ class Semantics:
       # there are more characters
       for i in range(len(node.children)):
         s.squishString(s.str, node.children[i])
+      
+  def checkScope(s, id, scope):
+    # check the current scope and its parents for an id's declaration
+    #print(id,'in',scope.hashTable)
+    if scope.parent is None:
+      if id in scope.hashTable:
+        #print("returning scope",scope.hashTable)
+        s.scope = scope
+      else:
+        #print("does not exist in scope")
+        return None
+    else:
+      if id in scope.hashTable:
+        #print("returning scope",scope.hashTable)
+        s.scope = scope
+      else: 
+        s.checkScope(id, scope.parent)
+  
+  def evalExpr(s, node, type):
+    # checks if all children of the current non terminal make sense(scope and type)
+    #print("--EVAL--\nnodename:",node.name," type checking:",type)
+    if node.name in s.id:
+      s.checkScope(node.name, s.scopeTree.current)
+    if(len(node.children)) is 0:
+      if node.name in s.id and s.scope is not None:
+        #scope.hashTable[node.name][2] = True # isUsed
+        s.typeMatch = s.scope.hashTable[node.name][0] is type
+      else:
+        if node.name is 'false' or node.name is 'true':
+          s.typeMatch = type is 'boolean'
+        elif node.name in s.intList:
+          s.typeMatch = type is 'int'
+        else:
+          s.typeMatch = type is 'string'
+    elif node.name is 'BoolOp':
+      #print('compared boolop(boolean) to ',type)
+      # boolop produces a boolean result, so the type is compared to boolean
+      s.typeMatch = type is 'boolean'
+    else:
+      for i in range(len(node.children)):
+        s.evalExpr(node.children[i], type)
+  
   
   # def buildAssignmentStr(s, node):
     # # build the string to be assigned to the id
@@ -279,40 +344,3 @@ class Semantics:
     # else:
       # for i in range(len(node.children)):
         # s.buildAssignmentStr(node.children[i])
-      
-  def checkScope(s, id, scope):
-    # check the current scope and its parents for an id's declaration
-    # print(scope.hashTable)
-    # print(id)
-    if scope.parent is None:
-      if id in scope.hashTable:
-        #print("returning scope")
-        return scope
-      else:
-        print("does not exist in scope")
-        return None
-    else:
-      if id in scope.hashTable:
-        #print("returning scope")
-        return scope
-      else: 
-        checkScope(id, scope.parent)
-  
-  def evalExpr(s, node, type):
-    # checks if all children of the current non terminal make sense(scope and type)
-    if(len(node.children)) is 0:
-      print("nodename:",node.name," type checking:",type)
-      if node.name in s.id and s.checkScope(node.name, s.scopeTree.current) is not None:
-        scope = s.checkScope(node.name, s.scopeTree.current)
-        #scope.hashTable[node.name][2] = True # isUsed
-        s.typeMatch = scope.hashTable[node.name][0] is type
-      else:
-        if node.name is 'false' or node.name is 'true':
-          s.typeMatch = type is 'boolean'
-        elif node.name in s.intList:
-          s.typeMatch = type is 'int'
-        else:
-          s.typeMatch = type is 'string'
-    else:
-      for i in range(len(node.children)):
-        s.evalExpr(node.children[i], type)

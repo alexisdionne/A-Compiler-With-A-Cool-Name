@@ -25,8 +25,8 @@ class Tree():
       self.current = node
       
   # same as addNode, but modified to have hash tables for scope
-  def addHashNode(self, name, kind, hasHash):
-    node = HashNode(name, [], None)
+  def addHashNode(self, name, kind):
+    node = HashNode(name, [], None, {})
     if self.root is None and not self.root:
       # we are the root node rn
       self.root = node
@@ -45,7 +45,7 @@ class Tree():
     # move up to the parent node when we're done with this branch
     if self.current.parent is not None:
       self.current = self.current.parent
-    else:
+    elif self.root is not self.current:
       # error logging
       print("Unable to return to parent node of", self.current.name)
       
@@ -53,6 +53,12 @@ class Tree():
   def toString(self):
     # initial call to expand
     self.expand(self.root, 0)
+    return self.result
+    
+  # method to print the tree
+  def hashToString(self):
+    # initial call to expand
+    self.hashExpand(self.root, 0)
     return self.result
     
   # recursive function to handle the expansion of the nodes
@@ -70,7 +76,20 @@ class Tree():
       for i in range(len(node.children)):
         self.expand(node.children[i], depth + 1)
     
-    
+  # recursive function to print all the hash tables  
+  def hashExpand(self, node, depth):
+    # add depth
+    for x in range(depth):
+      self.result += "-"
+    # no children/leaf nodes
+    if len(node.children) is 0: #not node.children or 
+      self.result += "["+str(node.name)+"]: "+str(node.hashTable)+"\n"
+    # there are children so note these interior nodes and expand them
+    else:
+      self.result += "<"+str(node.name)+"> : "+str(node.hashTable)+"\n"
+      for i in range(len(node.children)):
+        self.hashExpand(node.children[i], depth + 1)
+  
 class Node():
   # Node class holds information about the token to 
   # be used in the construction of a CST

@@ -199,8 +199,8 @@ class Lexer:
           print("ERROR Lexer - Error:",self.lineNum,":",self.linePos," Unrecognized Token: "+currentChar)
           errorCount += 1
           # watch out for an error right at the end!
-          if(self.currentPos == len(self.contents)-1):
-            #print("last in the file?")
+          if self.currentPos is len(self.contents):
+            print("last in the file?")
             lastPosition += 1
             self.currentPos += 1
             self.linePos += 1
@@ -229,7 +229,7 @@ class Lexer:
           nextState = self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])]
         
         # determine if we are entering or in a comment and change state accordingly
-        if currentChar is "/" and self.contents[self.currentPos] is "*":
+        if self.currentPos < len(self.contents) and currentChar is "/" and self.contents[self.currentPos] is "*":
           if lastAcceptingState not in self.accepting:
             inComment = True
             state = 3
