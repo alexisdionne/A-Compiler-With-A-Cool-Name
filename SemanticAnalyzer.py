@@ -176,7 +176,7 @@ class Semantics:
         s.analyze(node.children[i])
   
   def blockAnalysis(s, node):
-    #print('--BLOCK--')
+    ##print('--BLOCK--')
     if s.scopeTree.root is not None:
       s.scopeCount += 1
     s.scopeTree.addHashNode(s.scopeCount, 'branch')
@@ -184,7 +184,7 @@ class Semantics:
     #print('block',s.scopeTree.current.name)
   
   def varDeclAnalysis(s, node):
-    print('--VARDECL--')
+    #print('--VARDECL--')
     # add the variable declared to the current scope
     if s.scopeTree.current.addEntry(node.children[1].name, [node.children[0].name, False, False, None]) is 'Fail':
       print('SEMANTICS ERROR - SCOPE:',node.children[1].name,'has already been declared in this scope')
@@ -194,7 +194,7 @@ class Semantics:
       #print('new hash',s.scopeTree.current.hashTable)
   
   def assignmentAnalysis(s, node):
-    print('--ASSIGNMENT--')
+    #print('--ASSIGNMENT--')
     # check to see if the variable was declared and initialize it if type checks out
     #print('YOOOOOOOOOOOO',node.children[1].name)
     s.checkScope(node.children[0].name, s.scopeTree.current)
@@ -219,7 +219,7 @@ class Semantics:
       s.errors += 1
   
   def booleanAnalysis(s, node):
-    print('--BOOLEAN--')
+    #print('--BOOLEAN--')
     s.checkScope(node.name, s.scopeTree.current)
     #print(node.name)
     if len(node.children) is 0:
@@ -245,7 +245,7 @@ class Semantics:
         s.booleanAnalysis(node.children[i])
   
   def printAnalysis(s, node):
-    print('--PRINT--')
+    #print('--PRINT--')
     s.checkScope(node.name, s.scopeTree.current)
     if node.name in s.scope.hashTable:
       s.evalExpr(node, s.scope.hashTable[node.name][0])
@@ -303,8 +303,9 @@ class Semantics:
   def evalExpr(s, node, type):
     # checks if all children of the current non terminal make sense(scope and type)
     #print("--EVAL--\nnodename:",node.name," type checking:",type)
-    if node.name in s.id:
-      s.checkScope(node.name, s.scopeTree.current)
+    s.checkScope(node.name, s.scopeTree.current)
+    print("node",node.name)
+    print(s.scope.hashTable)
     if(len(node.children)) is 0:
       if node.name in s.id and s.scope is not None:
         #scope.hashTable[node.name][2] = True # isUsed

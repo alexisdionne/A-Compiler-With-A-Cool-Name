@@ -58,7 +58,8 @@ class Tree():
   # method to print the tree
   def hashToString(self):
     # initial call to expand
-    self.hashExpand(self.root, 0)
+    self.result = "------------------------------------------------\n"+ "Name\tType\t Scope\tLine\tisInit\tisUsed\n" + "------------------------------------------------\n"
+    self.hashExpand(self.root)
     return self.result
     
   # recursive function to handle the expansion of the nodes
@@ -77,18 +78,19 @@ class Tree():
         self.expand(node.children[i], depth + 1)
     
   # recursive function to print all the hash tables  
-  def hashExpand(self, node, depth):
-    # add depth
-    for x in range(depth):
-      self.result += "-"
+  def hashExpand(self, node):
     # no children/leaf nodes
-    if len(node.children) is 0: #not node.children or 
-      self.result += "["+str(node.name)+"]: "+str(node.hashTable)+"\n"
+    for i in node.hashTable:
+      self.result += str(i) + "\t"
+      self.result += str(node.hashTable[i][0]) + "\t "
+      self.result += str(node.name) + "\t"
+      self.result += "line#" + "\t"
+      self.result += str(node.hashTable[i][1]) + "\t"
+      self.result += str(node.hashTable[i][2]) + "\n"
+    if len(node.children) is not 0: 
     # there are children so note these interior nodes and expand them
-    else:
-      self.result += "<"+str(node.name)+"> : "+str(node.hashTable)+"\n"
       for i in range(len(node.children)):
-        self.hashExpand(node.children[i], depth + 1)
+        self.hashExpand(node.children[i])
   
 class Node():
   # Node class holds information about the token to 

@@ -3,7 +3,6 @@
  boolean b
  {
   a = 5
-  string c
   print(c)
  }
  b = (true == false)
