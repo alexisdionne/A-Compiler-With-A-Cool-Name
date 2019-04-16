@@ -51,11 +51,11 @@ class Semantics:
     
   # recursive function to craft the AST from the CST
   def expand(s, node, depth):
-    print('node is ',node.name)
-    if s.ast.root is not None:
-      print('current node is',s.ast.current.name)
-      if s.ast.current.parent is not None:
-        print('currents parent is',s.ast.current.parent.name)
+    # print('node is ',node.name)
+    # if s.ast.root is not None:
+      # print('current node is',s.ast.current.name)
+      # if s.ast.current.parent is not None:
+        # print('currents parent is',s.ast.current.parent.name)
     # no children/leaf nodes also ignore things like parentheses now (they suck anyway)
     if len(node.children) is 0 and node.name not in s.leafsIDontCareAbout: 
       s.addDepth(depth)
@@ -117,7 +117,7 @@ class Semantics:
         # down into a single string instead of a bunch of characters
         s.addDepth(depth)
         s.squishString(s.str, node)
-        s.astString += "[" + s.s + "]\n"
+        s.astString += "[" + s.str + "]\n"
         s.ast.addNode(s.str, "leaf")
         s.str = ""
         s.ast.returnToParent()
@@ -197,13 +197,19 @@ class Semantics:
   
   def assignmentAnalysis(s, node):
     # check to see if the variable was declared and initialize it if type checks out
-    s.evalExpr(node, s.scopeTree.current.hashTable[node.children[0].name][0])
+    print('YOOOOOOOOOOOO',node.children[1].name)
+    if node.children[1].name is 'BoolOp':
+      print('WENT IN HERE')
+      s.booleanAnalysis(node)
+      s.evalExpr(node, s.scopeTree.current.hashTable[node.children[0].name][0])
+    else:
+      s.evalExpr(node, s.scopeTree.current.hashTable[node.children[0].name][0])
     if s.typeMatch is True:
       s.scopeTree.current.hashTable[node.children[0].name][1] = True # isInit
-      s.buildAssignmentStr(node.children[1])
-      s.scopeTree.current.hashTable[node.children[0].name][3] = s.assignmentStr
-      print("Assigned",s.assignmentStr,"to",node.children[0].name)
-      s.assignmentStr = ''
+      #s.buildAssignmentStr(node.children[1])
+      #s.scopeTree.current.hashTable[node.children[0].name][3] = 
+      # print("Assigned",s.assignmentStr,"to",node.children[0].name)
+      # s.assignmentStr = ''
       print('updated hash',s.scopeTree.current.hashTable[node.children[0].name])
     else:
       print("Failed to assign",node.children[1].name,"to",node.children[0].name)
@@ -258,21 +264,21 @@ class Semantics:
       for i in range(len(node.children)):
         s.squishString(s.str, node.children[i])
   
-  def buildAssignmentStr(s, node):
-    # build the string to be assigned to the id
-    if node.name is 'Add':
-      s.buildAssignmentStr(node.children[0])
-      s.assignmentStr += " + "
-      s.buildAssignmentStr(node.children[1])
-    elif node.name is 'BoolOp':
-      s.buildAssignmentStr(node.children[0])
-      s.assignmentStr += " isEq "
-      s.buildAssignmentStr(node.children[1])
-    elif len(node.children) is 0:
-      s.assignmentStr += node.name
-    else:
-      for i in range(len(node.children)):
-        s.buildAssignmentStr(node.children[i])
+  # def buildAssignmentStr(s, node):
+    # # build the string to be assigned to the id
+    # if node.name is 'Add':
+      # s.buildAssignmentStr(node.children[0])
+      # s.assignmentStr += " + "
+      # s.buildAssignmentStr(node.children[1])
+    # elif node.name is 'BoolOp':
+      # s.buildAssignmentStr(node.children[0])
+      # s.assignmentStr += " isEq "
+      # s.buildAssignmentStr(node.children[1])
+    # elif len(node.children) is 0:
+      # s.assignmentStr += node.name
+    # else:
+      # for i in range(len(node.children)):
+        # s.buildAssignmentStr(node.children[i])
       
   def checkScope(s, id, scope):
     # check the current scope and its parents for an id's declaration
