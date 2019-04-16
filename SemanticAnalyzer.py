@@ -170,11 +170,7 @@ class Semantics:
       s.blockAnalysis(node.children[1])
     elif node.name is 'Print':
       s.printAnalysis(node.children[0])
-    if len(node.children) is 0: # no kids so go up
-      # not sure what goes here?
-      print(node.name,"is a child")
-        
-    else:
+    if len(node.children) is not 0:
       #print(node.name,"is a parent of",len(node.children),"children")
       for i in range(len(node.children)):
         s.analyze(node.children[i])
