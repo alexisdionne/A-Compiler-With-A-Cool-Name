@@ -1,3 +1,26 @@
+{
+ int a
+ boolean b
+ {
+  int c
+  a = 5
+  print(c)
+ }
+ b = (true == false)
+ print(a)
+ {
+  int d
+  d = 2 + 2 + a
+  print(d)
+  {
+   string e
+   e = "yellow"
+  print(e)
+  }
+ }
+ string h
+}$
+
 {1 = 2}$
 
 {}$
@@ -27,6 +50,8 @@ print(a){print(a)}$
 {a = 1}$
 
 {a = 1 + 2  + 3   + 4    + 5     }$
+
+{a=1+a if(true==false){print("hiwrld")}}$
 
 /*LongTestCase-EverythingExceptBooleanDeclaration*/{/*IntDeclaration*/intaintba=0b=0/*WhileLoop*/while(a!=3){print(a)while(b!=3){print(b)b=1+bif(b==2){/*PrintStatement*/print("there is no spoon"/*Thiswilldonothing*/)}}b=0a=1+a}}$
 
