@@ -1,23 +1,5 @@
-{
- int a
- boolean b
- {
-  int c
-  a = 5
-  print(c)
- }
- b = (true == false)
- print(a)
- {
-  int d
-  int a
-  d = 2 + 2 + a
-  print(d)
-  {
-   string e
-   e = "yellow"
-  print(e)
-  }
- }
- string h
-}$
+{print((true == (false != true)))
+boolean a
+a = false
+while (a == false){
+  int b}}$
