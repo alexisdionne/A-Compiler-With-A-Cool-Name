@@ -47,7 +47,7 @@ class Parser:
   def matchAndConsume(self, expectedTokens):
     # determine if the current token is a fit with expected set and consume if it is
     if self.currentToken.value in expectedTokens:
-      self.tree.addNode(self.currentToken.value, "leaf")
+      self.tree.addNode(self.currentToken.value, self.currentToken.lineNumber,"leaf")
       self.tracker += 1
       # prevent going out of bounds
       if self.tracker < len(self.tokenList):
@@ -61,7 +61,7 @@ class Parser:
   def parseProgram(self):
     # every program starts with the program node
     print("Parsing Program()")
-    self.tree.addNode("Program", "branch")
+    self.tree.addNode("Program", self.currentToken.lineNumber, "branch")
     if len(self.tokenList) > 2:  
       self.parseBlock()
       self.matchAndConsume(self.terminals["EoP"])
@@ -85,7 +85,7 @@ class Parser:
     
   def parseBlock(self):
     print("Parsing Block()")
-    self.tree.addNode("Block", "branch")
+    self.tree.addNode("Block", self.currentToken.lineNumber, "branch")
     self.matchAndConsume(self.terminals["L_BRACE"])
     self.parseStatementList()
     self.matchAndConsume(self.terminals["R_BRACE"])
@@ -94,7 +94,7 @@ class Parser:
     
   def parseStatementList(self):
     print("Parsing Statement List()")
-    self.tree.addNode("Statement List", "branch")
+    self.tree.addNode("Statement List", self.currentToken.lineNumber, "branch")
     # only move in if the currentToken is in the FIRST set of Statement
     if self.currentToken.type in self.FIRST["OfStatement"]:
       self.parseStatement()
@@ -108,7 +108,7 @@ class Parser:
   
   def parseStatement(self):
     print("Parsing Statement()")
-    self.tree.addNode("Statement", "branch")
+    self.tree.addNode("Statement", self.currentToken.lineNumber, "branch")
     # determine which terminal matches the currentToken
     if self.currentToken.type is 'P_STMT':
       self.parsePrint()
@@ -127,7 +127,7 @@ class Parser:
       
   def parsePrint(self):
     print("Parsing Print()")
-    self.tree.addNode("Print", "branch")
+    self.tree.addNode("Print", self.currentToken.lineNumber, "branch")
     self.matchAndConsume(self.terminals["P_STMT"])
     self.matchAndConsume(self.terminals["L_PAREN"])
     self.parseExpr()
@@ -137,7 +137,7 @@ class Parser:
   
   def parseAssignment(self):
     print("Parsing Assignment()")
-    self.tree.addNode("Assignment", "branch")
+    self.tree.addNode("Assignment", self.currentToken.lineNumber, "branch")
     self.parseId()
     self.matchAndConsume(self.terminals["A_STMT"])
     self.parseExpr()
@@ -146,7 +146,7 @@ class Parser:
   
   def parseVarDecl(self):
     print("Parsing VarDecl()")
-    self.tree.addNode("VarDecl", "branch")
+    self.tree.addNode("VarDecl", self.currentToken.lineNumber, "branch")
     self.matchAndConsume(self.terminals["TYPE"])
     self.parseId()
     self.tree.returnToParent()
@@ -154,7 +154,7 @@ class Parser:
   
   def parseWhile(self):
     print("Parsing While()")
-    self.tree.addNode("While", "branch")
+    self.tree.addNode("While", self.currentToken.lineNumber, "branch")
     self.matchAndConsume(self.terminals["W_STMT"])
     self.parseBooleanExpr()
     self.parseBlock()
@@ -163,7 +163,7 @@ class Parser:
   
   def parseIf(self):
     print("Parsing If()")
-    self.tree.addNode("If", "branch")
+    self.tree.addNode("If", self.currentToken.lineNumber, "branch")
     self.matchAndConsume(self.terminals["I_STMT"])
     self.parseBooleanExpr()
     self.parseBlock()
@@ -172,7 +172,7 @@ class Parser:
     
   def parseExpr(self):
     print("Parsing Expr()")
-    self.tree.addNode("Expr", "branch")
+    self.tree.addNode("Expr", self.currentToken.lineNumber, "branch")
     # determine which of the terminals match the currentToken
     if self.currentToken.type is 'DIGIT':
       self.parseIntExpr()
@@ -187,7 +187,7 @@ class Parser:
       
   def parseIntExpr(self):
     print("Parsing IntExpr()")
-    self.tree.addNode("IntExpr", "branch")
+    self.tree.addNode("IntExpr", self.currentToken.lineNumber, "branch")
     # consome a digit regardless because it has to start with one or be one
     self.matchAndConsume(self.terminals["DIGIT"])
     if self.currentToken.type is "INTOP":
@@ -199,7 +199,7 @@ class Parser:
       
   def parseStringExpr(self):
     print("Parsing StringExpr()")
-    self.tree.addNode("String", "branch")
+    self.tree.addNode("String", self.currentToken.lineNumber, "branch")
     self.matchAndConsume(self.terminals["QUOTE"])
     self.parseCharList()
     self.matchAndConsume(self.terminals["QUOTE"])
@@ -208,7 +208,7 @@ class Parser:
     
   def parseBooleanExpr(self):
     print("Parsing BooleanExpr()")
-    self.tree.addNode("BooleanExpr", "branch")
+    self.tree.addNode("BooleanExpr", self.currentToken.lineNumber, "branch")
     # determine which of the terminals match the currentToken
     if self.currentToken.type is "L_PAREN":
       # expand to a comparison
@@ -225,14 +225,14 @@ class Parser:
   
   def parseId(self):
     print("Parsing Id()")
-    self.tree.addNode("Id", "branch")
+    self.tree.addNode("Id", self.currentToken.lineNumber, "branch")
     self.matchAndConsume(self.terminals["CHAR"])
     self.tree.returnToParent()
     
     
   def parseCharList(self):
     print("Parsing CharList()")
-    self.tree.addNode("CharList", "branch")
+    self.tree.addNode("CharList", self.currentToken.lineNumber, "branch")
     # determine if the currentToken is a space or character
     if self.currentToken.type is "CHAR":
       self.matchAndConsume(self.terminals["CHAR"])

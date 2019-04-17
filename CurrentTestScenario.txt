@@ -19,6 +19,5 @@
   print(e)
   }
  }
- d = 6
  string h
 }$

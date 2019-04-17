@@ -9,8 +9,8 @@ class Tree():
     self.current = None
     self.result = ""
     
-  def addNode(self, name, kind):
-    node = Node(name, [], None)
+  def addNode(self, name, position, kind):
+    node = Node(name, [], None, position)
     if self.root is None and not self.root:
       # we are the root node rn
       self.root = node
@@ -83,10 +83,10 @@ class Tree():
     for i in node.hashTable:
       self.result += str(i) + "\t"
       self.result += str(node.hashTable[i][0]) + "\t "
-      self.result += str(node.name) + "\t"
-      self.result += "line#" + "\t"
+      self.result += str(node.name)            + "\t"
       self.result += str(node.hashTable[i][1]) + "\t"
-      self.result += str(node.hashTable[i][2]) + "\n"
+      self.result += str(node.hashTable[i][2]) + "\t"
+      self.result += str(node.hashTable[i][3]) + "\n"
     if len(node.children) is not 0: 
     # there are children so note these interior nodes and expand them
       for i in range(len(node.children)):
@@ -95,10 +95,11 @@ class Tree():
 class Node():
   # Node class holds information about the token to 
   # be used in the construction of a CST
-  def __init__(n, name="", children=[], parent=None):
+  def __init__(n, name="", children=[], parent=None, position=0):
     n.name = name
     n.children = children
     n.parent = parent
+    n.lineNumber = position
 
 class HashNode():
   def __init__(h, name="", children=[], parent=None, hashTable={}):

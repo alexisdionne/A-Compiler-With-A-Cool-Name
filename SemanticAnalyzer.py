@@ -49,8 +49,11 @@ class Semantics:
     print(s.ast.toString())
     #print(s.astString)
     s.analyze(s.ast.root)
-    print(s.scopeTree.hashToString())
-    print("\n\nERROR COUNT: ",s.errors)
+    if s.errors == 0:
+      s.issueWarnings(s.scopeTree.root)
+      print("\n",s.scopeTree.hashToString(),sep='')
+    else:
+      print("\nSymbol table not produced due to error(s).\nError Count: ",s.errors)
     s.astString = ''
     
   # recursive function to craft the AST from the CST
@@ -65,7 +68,7 @@ class Semantics:
       s.addDepth(depth)
       s.astString += "["+node.name+"]"
       s.astString += "\n"
-      s.ast.addNode(node.name, "child")
+      s.ast.addNode(node.name, node.lineNumber, "child")
     # there are children so depending on if its good stuff, expand
     # otherwise, just keep diggin
     else:
@@ -73,14 +76,14 @@ class Semantics:
         # grab the Expr node and expand it
         s.addDepth(depth)
         s.astString += "<Print>\n"
-        s.ast.addNode("Print", "branch")
+        s.ast.addNode("Print", node.lineNumber, "branch")
         s.expand(node.children[2], depth + 1)
         s.ast.returnToParent()
       elif node.name is 'VarDecl':
         # both nodes matter to varDecl equally
         s.addDepth(depth)
         s.astString += "<VarDecl>\n"
-        s.ast.addNode("VarDecl", "branch")
+        s.ast.addNode("VarDecl", node.lineNumber, "branch")
         for i in range(len(node.children)):
           s.expand(node.children[i], depth + 1)
         s.ast.returnToParent()
@@ -88,7 +91,7 @@ class Semantics:
         # assignment cares about all of it's kids too
         s.addDepth(depth)
         s.astString += "<Assignment>\n"
-        s.ast.addNode("Assignment", "branch")
+        s.ast.addNode("Assignment", node.lineNumber, "branch")
         for i in range(len(node.children)):
           s.expand(node.children[i], depth + 1)
         s.ast.returnToParent()
@@ -97,7 +100,7 @@ class Semantics:
         s.addDepth(depth)
         s.astString += "<Add>\n"
         if len(node.children) > 1:
-          s.ast.addNode("Add", "branch")
+          s.ast.addNode("Add", node.lineNumber, "branch")
           s.expand(node.children[0], depth + 1)
           s.expand(node.children[2], depth + 1)
           s.ast.returnToParent()
@@ -109,7 +112,7 @@ class Semantics:
           # it decided to be big and have multiple Expr
           s.addDepth(depth)
           s.astString += "<BoolOp>\n"
-          s.ast.addNode("BoolOp", "branch")
+          s.ast.addNode("BoolOp", node.lineNumber, "branch")
           s.expand(node.children[1], depth + 1)
           s.expand(node.children[3], depth + 1)
           s.ast.returnToParent()
@@ -122,13 +125,13 @@ class Semantics:
         s.addDepth(depth)
         s.squishString(s.str, node)
         s.astString += "[" + s.str + "]\n"
-        s.ast.addNode(s.str, "leaf")
+        s.ast.addNode(s.str, node.lineNumber, "leaf")
         s.str = ""
       elif node.name is 'Block':
         # straight up has a favorite child, what a bad parent
         s.addDepth(depth)
         s.astString += "<Block>\n"
-        s.ast.addNode("Block", "branch")
+        s.ast.addNode("Block", node.lineNumber, "branch")
         s.expand(node.children[1], depth + 1)
         if s.ast.root is not None:
           s.ast.returnToParent()
@@ -137,7 +140,7 @@ class Semantics:
         # and better things
         s.addDepth(depth)
         s.astString += "<While>\n"
-        s.ast.addNode("While", "branch")
+        s.ast.addNode("While", node.lineNumber, "branch")
         s.expand(node.children[1], depth + 1) # grows up to be a booleanExpr
         s.expand(node.children[2], depth + 1) # grows up to be a whole Block!
         s.ast.returnToParent()
@@ -145,7 +148,7 @@ class Semantics:
         # pretty much the same as while (copycat)
         s.addDepth(depth)
         s.astString += "<If>\n"
-        s.ast.addNode("If", "branch")
+        s.ast.addNode("If", node.lineNumber, "branch")
         s.expand(node.children[1], depth + 1)
         s.expand(node.children[2], depth + 1)
         s.ast.returnToParent()
@@ -177,29 +180,29 @@ class Semantics:
     if len(node.children) is not 0:
       #print(node.name,"is a parent of",len(node.children),"children")
       for i in range(len(node.children)):
-        print("ANALYZING ",node.children[i].name,'... scope',s.scopeTree.current.name)
+        #print("ANALYZING ",node.children[i].name,'... scope',s.scopeTree.current.name)
         s.analyze(node.children[i])
       if node.name == 'Block':
-        print('Returned from Block',s.scopeTree.current.name)
+        #print('Returned from Block',s.scopeTree.current.name)
         s.scopeTree.returnToParent()
   
   def blockAnalysis(s, node):
-    print('--BLOCK--')
+    #print('--BLOCK--')
     if s.scopeTree.root is not None:
       s.scopeCount += 1
     s.scopeTree.addHashNode(s.scopeCount, 'branch')
     s.scope = s.scopeTree.current
-    print('block',s.scopeTree.current.name)
+    #print('block',s.scopeTree.current.name)
   
   def varDeclAnalysis(s, node):
     #print('--VARDECL--')
     # add the variable declared to the current scope
-    if s.scopeTree.current.addEntry(node.children[1].name, [node.children[0].name, False, False, None]) is 'Fail':
+    if s.scopeTree.current.addEntry(node.children[1].name, [node.children[0].name, node.children[0].lineNumber, False, False, None]) is 'Fail':
       print('SEMANTICS ERROR - SCOPE:',node.children[1].name,'has already been declared in this scope')
       s.errors += 1
   
   def assignmentAnalysis(s, node):
-    print('--ASSIGNMENT--')
+    #print('--ASSIGNMENT--')
     # check to see if the variable was declared and initialize it if type checks out
     #print('YOOOOOOOOOOOO',node.children[1].name)
     s.checkScope(node.children[0].name, s.scopeTree.current)
@@ -211,7 +214,7 @@ class Semantics:
       s.checkScope(node.children[0].name, s.scopeTree.current)
       s.evalExpr(node.children[1], s.scope.hashTable[node.children[0].name][0])
     elif s.scope.name != "-1":
-      print("checking ",node.children[0].name,"against",node.children[1].name)
+      #print("checking ",node.children[0].name,"against",node.children[1].name)
       s.evalExpr(node.children[1], s.scope.hashTable[node.children[0].name][0])
     else:
       print('SEMANTICS ERROR - SCOPE:',node.children[0].name,'does not exist in this scope')
@@ -220,7 +223,7 @@ class Semantics:
     # return to original scope
     s.checkScope(node.children[0].name, s.scopeTree.current)
     if s.typeMatch is True:
-      s.scope.hashTable[node.children[0].name][1] = True # isInit
+      s.scope.hashTable[node.children[0].name][2] = True # isInit
       #print("updated hash of",node.children[0].name,":",s.scope.hashTable[node.children[0].name])
     elif s.typeMatch is False and s.scope.name != '-1':
       print(node.children[0].name)
@@ -244,7 +247,7 @@ class Semantics:
       if s.typeMatch is True and node.name in s.scope.hashTable:
         if node.parent.children[0].name is not node.name:
           # will only update to used if it is not the one being assigned
-          s.scope.hashTable[node.name][2] = True #isUsed
+          s.scope.hashTable[node.name][3] = True #isUsed
       elif s.typeMatch is not True:
         print('SEMANTICS ERROR - SCOPE:',node.name,'does not exist in this scope')
         s.errors += 1
@@ -270,7 +273,7 @@ class Semantics:
     s.checkScope(node.name, s.scopeTree.current)
     if s.typeMatch is True:
       # print succeeded and the id should be updated as used
-      s.scope.hashTable[node.name][2] = True
+      s.scope.hashTable[node.name][3] = True # isUsed
     else:
       if s.scope.name == '-1':
         print('SEMANTICS ERROR - SCOPE:',node.name,'has not been declared')
@@ -280,34 +283,20 @@ class Semantics:
         s.errors += 1
     #print("updated hash of'",node.name,"':" ,s.scope.hashTable[node.name])
     
-# helper functions         
-  def addDepth(s, depth):
-    # add depth to str
-    for x in range(depth):
-      s.astString += "-"
-  
-  def squishString(s, string, node):
-    if len(node.children) is 0 and node.name not in s.leafsIDontCareAbout: 
-      # prepend the next char
-      s.str = string + str(node.name)
-    else:
-      # there are more characters
-      for i in range(len(node.children)):
-        s.squishString(s.str, node.children[i])
-      
+# helper functions
   def checkScope(s, id, scope):
     # check the current scope and its parents for an id's declaration
     #print(id,'in',scope.hashTable)
     if scope.parent is None:
       if id in scope.hashTable:
-        print("returning scope",scope.hashTable)
+        #print("returning scope",scope.hashTable)
         s.scope = scope
       else:
         #print("does not exist in scope")
         s.scope = HashNode("-1")
     else:
       if id in scope.hashTable:
-        print("returning scope",scope.name)
+        #print("returning scope",scope.name)
         s.scope = scope
       else: 
         s.checkScope(id, scope.parent)
@@ -320,11 +309,11 @@ class Semantics:
       s.checkScope(node.name, s.scopeTree.current)
     # else do no scope check bc it def wont be in the map
     
-    print("node",node.name," #kids:",len(node.children))
+    #print("node",node.name," #kids:",len(node.children))
     #print(s.scope.name," :",s.scope.hashTable)
     if(len(node.children)) == 0:
       if node.name in s.id and s.scope.name != "-1":
-        s.scope.hashTable[node.name][2] = True # isUsed
+        s.scope.hashTable[node.name][3] = True # isUsed
         s.typeMatch = s.scope.hashTable[node.name][0] is type
       else:
         if node.name is 'false' or node.name is 'true':
@@ -345,20 +334,39 @@ class Semantics:
     else:
       for i in range(len(node.children)):
         s.evalExpr(node.children[i], type)
+        
+  def issueWarnings(s, node):
+    # goes through and determines warnings for
+    # 1) declared but not used
+    # 2) uninitialized but used
+    # 3) initialized but not used
+    hash = node.hashTable
+    for i in node.hashTable:
+      if hash[i][2] == False: # not initialized
+        if hash[i][3] == True: # used
+          print('SEMANTICS WARNING - ',i,'is used and not initialized.')
+        else: # unused
+          print('SEMANTICS WARNING - ',i,'is never used or initialized.')
+      else: # initialized
+        if hash[i][3] == False: # unused
+          print('SEMANTICS WARNING - ',i,'is initialized but unused.')
+          
+    if len(node.children) is not 0: 
+    # there are children so note these interior nodes and expand them
+      for i in range(len(node.children)):
+        s.issueWarnings(node.children[i])
+             
+  def addDepth(s, depth):
+    # add depth to str
+    for x in range(depth):
+      s.astString += "-"
   
-  
-  # def buildAssignmentStr(s, node):
-    # # build the string to be assigned to the id
-    # if node.name is 'Add':
-      # s.buildAssignmentStr(node.children[0])
-      # s.assignmentStr += " + "
-      # s.buildAssignmentStr(node.children[1])
-    # elif node.name is 'BoolOp':
-      # s.buildAssignmentStr(node.children[0])
-      # s.assignmentStr += " isEq "
-      # s.buildAssignmentStr(node.children[1])
-    # elif len(node.children) is 0:
-      # s.assignmentStr += node.name
-    # else:
-      # for i in range(len(node.children)):
-        # s.buildAssignmentStr(node.children[i])
+  def squishString(s, string, node):
+    if len(node.children) is 0 and node.name not in s.leafsIDontCareAbout: 
+      # prepend the next char
+      s.str = string + str(node.name)
+    else:
+      # there are more characters
+      for i in range(len(node.children)):
+        s.squishString(s.str, node.children[i])
+      
