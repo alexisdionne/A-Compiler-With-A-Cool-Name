@@ -91,6 +91,7 @@ class Semantics:
         s.ast.addNode("Assignment", "branch")
         for i in range(len(node.children)):
           s.expand(node.children[i], depth + 1)
+        s.ast.returnToParent()
       elif node.name is 'IntExpr':
         # screw the '+', we only want variables
         s.addDepth(depth)
@@ -102,7 +103,6 @@ class Semantics:
           s.ast.returnToParent()
         else:
           s.expand(node.children[0], depth + 1)
-        s.ast.returnToParent()
       elif node.name is 'BooleanExpr':
         # booleanExpr is confused about who to care about, it needs help
         if len(node.children) > 1:
@@ -112,10 +112,10 @@ class Semantics:
           s.ast.addNode("BoolOp", "branch")
           s.expand(node.children[1], depth + 1)
           s.expand(node.children[3], depth + 1)
+          s.ast.returnToParent()
         else:
           # it wanted to be smol instead and is just a boolVal
           s.expand(node.children[0], depth + 1)
-        s.ast.returnToParent()
       elif node.name is 'String':
         # string is so great it got it's own recursive function to squish 
         # down into a single string instead of a bunch of characters
@@ -124,7 +124,6 @@ class Semantics:
         s.astString += "[" + s.str + "]\n"
         s.ast.addNode(s.str, "leaf")
         s.str = ""
-        s.ast.returnToParent()
       elif node.name is 'Block':
         # straight up has a favorite child, what a bad parent
         s.addDepth(depth)
@@ -301,14 +300,14 @@ class Semantics:
     #print(id,'in',scope.hashTable)
     if scope.parent is None:
       if id in scope.hashTable:
-        #print("returning scope",scope.hashTable)
+        print("returning scope",scope.hashTable)
         s.scope = scope
       else:
         #print("does not exist in scope")
         s.scope = HashNode("-1")
     else:
       if id in scope.hashTable:
-        #print("returning scope",scope.hashTable)
+        print("returning scope",scope.name)
         s.scope = scope
       else: 
         s.checkScope(id, scope.parent)
