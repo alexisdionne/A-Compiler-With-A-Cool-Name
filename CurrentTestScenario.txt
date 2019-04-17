@@ -2,9 +2,23 @@
  int a
  boolean b
  {
+  int c
   a = 5
   print(c)
  }
  b = (true == false)
  print(a)
+ {
+  int d
+  int a
+  d = 2 + 2 + a
+  print(d)
+  {
+   string e
+   e = "yellow"
+  print(e)
+  }
+ }
+ d = 6
+ string h
 }$
