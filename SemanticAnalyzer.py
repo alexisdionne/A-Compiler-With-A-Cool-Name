@@ -195,7 +195,7 @@ class Semantics:
       s.scope.hashTable[node.children[0].name][2] = True # isInit
     elif s.typeMatch is False and s.scope.name != '-1':
       # the rest of this print out occurs in evalExpr to get a better message
-      print(node.children[0].name,' (line ',node.children[0].lineNumber,')',sep='')
+      print('SEMANTICS ERROR - SCOPE: ',node.children[0].name,' could not be assigned to ',node.children[1].name,' (line ',node.children[0].lineNumber,')',sep='')
       s.errors += 1
   
   def booleanAnalysis(s, node):
@@ -241,11 +241,12 @@ class Semantics:
     if s.typeMatch is True and node.name in s.id:
       # print succeeded and the id should be updated as used
       s.scope.hashTable[node.name][3] = True # isUsed
-    elif s.typeMatch is False:
+    elif s.typeMatch is False and node.name in s.id:
       if s.scope.name == '-1':
         print('SEMANTICS ERROR - SCOPE: ',node.name,' has not been declared (line ',node.lineNumber,')',sep='')
         s.errors += 1
-      else:
+    else:
+      if s.typeMatch is False:
         print('SEMANTICS ERROR - TYPE: ',node.name,' could not be printed (line ',node.lineNumber,')',sep='')
         s.errors += 1
     
@@ -280,13 +281,15 @@ class Semantics:
         elif node.name in s.intList:
           s.typeMatch = type is 'int'
         else:
-          if s.scope.name != '-1':
+          if s.scope.name != '-1' or node.name.find('"') != -1:
             s.typeMatch = type is 'string'
           else:
             s.typeMatch = False
-      if s.typeMatch == False and s.scope.name != '-1':
-        # big fail :(
-        print('SEMANTICS ERROR - TYPE:',node.name,'is not the same type as',end=' ')
+      # if s.typeMatch == False and s.scope.name != '-1':
+        # # big fail :(
+        # print('SEMANTICS ERROR - TYPE:',node.name,'is not the same type as',end=' ')
+      # elif s.typeMatch == False and s.scope.name == '-1':
+        # print('SEMANTICS ERROR - SCOPE:',node.name,end=' ')
     elif node.name is 'BoolOp':
       # boolop produces a boolean result, so the type is compared to boolean
       s.typeMatch = type is 'boolean'

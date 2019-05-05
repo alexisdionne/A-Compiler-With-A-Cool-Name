@@ -192,7 +192,6 @@ class Lexer:
         index = self.getIndexFromChar(currentChar)
         
         
-        #print("Current Char: ",currentChar," lastPosition: ",lastPosition," CurrentPos: ", self.currentPos)
         # when there is an unrecognized token, we gotta just move right past it, but with a report of course
         if index is None and not inComment:
           #if lastPosition == self.currentPos:
@@ -227,6 +226,7 @@ class Lexer:
         state = self.DFATable[state][index]
         if self.currentPos < len(self.contents) and self.getIndexFromChar(self.contents[self.currentPos]) is not None:
           nextState = self.DFATable[state][self.getIndexFromChar(self.contents[self.currentPos])]
+          
         
         # determine if we are entering or in a comment and change state accordingly
         if self.currentPos < len(self.contents) and currentChar is "/" and self.contents[self.currentPos] is "*":
@@ -270,13 +270,15 @@ class Lexer:
           continue
           
         
+        #print("Current Char: ",currentChar," state: ",lastAcceptingState)
         # determine if the lastAcceptingState we have is the best one
         if(state in self.accepting or lastAcceptingState is 35):
           
           # a keyword is preferable, so if it already happened, we don't need a new one
           if(not lastAcceptingState in self.keywords):
-            # found a keyword that matched the first char of the current grouping
-            if(state in self.keywords and self.accepting[state][1][0] == self.contents[lastPosition-1]):
+            # found a keyword that matched the first 2 chars of the current grouping
+            if(state in self.keywords and self.accepting[state][1][0] == self.contents[lastPosition-1] and self.accepting[state][1][1] == self.contents[lastPosition]):
+              
               lastAcceptingState = state
               lastPosition = self.currentPos
               state = 0

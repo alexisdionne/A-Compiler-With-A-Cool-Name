@@ -1,0 +1,115 @@
+{
+ print("")
+ {}
+ int a
+ a = 0
+ a = 3 + a
+ int b
+ b = 8
+ {
+  {
+   print("inta is not int a")
+   print(1+2+3+4+3+2+1)
+   print(a)
+  }
+  int a 
+  a = 7
+  string b
+  b = "one string"
+  print(b)
+ }
+}$
+
+{
+ int a 
+ a = 0
+ boolean b
+ b = false
+ boolean c
+ c = true
+ while(((a!=9)==("test"!="alan"))==((5==5)!=(b==c))){
+  print("a")
+  string d
+  d = "yes"
+  print(d)
+  {
+    int a
+    a = 5
+  }
+ }
+}$
+
+/*test case for most productions with 2 semantic warnings*/{/*int declaration*/intaintbstringsbooleanzz=trues="dammit lex"a=0b=0/*while loop*/while(a!=3){print(a)while(b!=3){print(b)b=1+bif(b==2){/*print statement*/print("dammit lex"/*this will do nothing*/)}}b=0a=1+a}}$
+
+{
+  int a 
+  a =0
+  string z
+  while(a!=9){
+    if(a!=5){
+      print("bond")
+    }
+    {
+      a = 1 + a
+      string b
+      b = "james bond"
+      print(b)
+    }
+  }
+  {}
+  boolean c
+  c = true
+  boolean d
+  int b
+  b = 7
+  d = (true ==(true==false))
+  d = (a==b)
+  d = (1==a)
+  d = (1!=1)
+  d = ("string"==z)
+  d = (z != "string")
+  d = ("string"!="string")
+  if(d==true){
+    int c 
+    c = 1 + b
+    if(c==1){
+     print("ugh")
+    }
+  }
+  while("string"==z){
+    while(d == true){
+      a = 1 + b
+    }
+  }
+}$
+
+{
+a = 0
+}$
+
+{
+ int a
+ {
+  int b
+  b = 2
+ }
+ a = b
+}$
+
+{
+ int a
+ {
+  int b 
+  {
+   string c 
+   {
+    a = 5
+    b = 6
+    c = "inta"
+   }
+   print(c)
+  }
+ }
+ print(b)
+ print(a)
+}$
