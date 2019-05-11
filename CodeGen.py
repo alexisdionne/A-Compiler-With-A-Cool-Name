@@ -20,13 +20,14 @@ class CodeGen:
   intList={'0','1','2','3','4','5','6','7','8','9'}
   
   def __init__(s, ast, scope):
-    c.ast = ast
-    c.scopeTree = scope
+    s.ast = ast
+    s.scopeTree = scope
     
   def main(s):
     print("main")
-    analyze(s.ast.root)
-    backpatch()
+    s.analyze(s.ast.root)
+    s.backpatch()
+    s.printCode()
     
   def analyze(s, node):
     # move through AST and scope tree to generate code
@@ -59,20 +60,30 @@ class CodeGen:
     
   def varDeclGen(s, node):
     # load the accumulator wih 0 and save a space in memory for the id
-    s.code[s.arrPos++] = 'A9'
-    s.code[s.arrPos++] = '00'
-    s.code[s.arrPos++] = '8D'
-    s.code[s.arrPos++] = newStatic(node.children[1])
-    s.code[s.arrPos++] = 'XX'
+    s.code.append('A9') 
+    s.arrPos = s.arrPos + 1
+    s.code.append('00')
+    s.arrPos = s.arrPos + 1
+    s.code.append('8D')
+    s.arrPos = s.arrPos + 1
+    s.code.append(s.newStatic(node.children[1])) 
+    s.arrPos = s.arrPos + 1
+    s.code.append('XX')
+    s.arrPos = s.arrPos + 1
     
   def assignmentGen(s, node):
     # load the accumulator with the number to assign and 
     # store that in the id's memory location
-    s.code[s.arrPos++] = 'A9'
-    s.code[s.arrPos++] = '0'+node.children[1].name
-    s.code[s.arrPos++] = '8D'
-    s.code[s.arrPos++] = findStatic(node.children[0])
-    s.code[s.arrPos++] = 'XX' 
+    s.code.append('A9')
+    s.arrPos = s.arrPos + 1
+    s.code.append('0'+node.children[1].name)
+    s.arrPos = s.arrPos + 1
+    s.code.append('8D')
+    s.arrPos = s.arrPos + 1
+    s.code.append(s.findStatic(node.children[0]))
+    s.arrPos = s.arrPos + 1
+    s.code.append('XX')
+    s.arrPos = s.arrPos + 1
     
   def printGen(s, node): 
     # load the value into the Y register and
@@ -80,19 +91,34 @@ class CodeGen:
     
     # ADD FUNCITONALIY FOR PRINTING BOOLEXPRS
     if node.children[0].name in id:
-      s.code[s.arrPos++] = 'AC'
-      s.code[s.arrPos++] = findStatic(node.children[0])
-      s.code[s.arrPos++] = 'XX'
-      s.code[s.arrPos++] = 'FF'
-      if typeStatic(node.children[0]) is 'string':
-        s.code[s.arrPos++] = '02'
+      s.code.append('AC')
+      s.arrPos = s.arrPos + 1
+      s.code.append(s.findStatic(node.children[0]))
+      s.arrPos = s.arrPos + 1
+      s.code.append('XX')
+      s.arrPos = s.arrPos + 1
+      s.code.append('FF')
+      s.arrPos = s.arrPos + 1
+      if s.typeStatic(node.children[0]) is 'string':
+        s.code.append('02')
+        s.arrPos = s.arrPos + 1
       else:
-        s.code[s.arrPos++] = '01'
+        s.code.append('01')
+        s.arrPos = s.arrPos + 1
+    elif node.children[0].name in intList:
+      s.code.append('A0')
+      s.arrPos = s.arrPos + 1
+      s.code.append('0'+node.children[0].name)
+      s.arrPos = s.arrPos + 1
+      s.code.append('FF')
+      s.arrPos = s.arrPos + 1
+      s.code.append('01')
+      s.arrPos = s.arrPos + 1
     
   def backpatch(s):
     # go back through the code generated and replace any static variables
     for i in staticVar:
-      address = hex(staticVar[i] + s.arrPos])
+      address = hex(staticVar[i] + s.arrPos)
       print('address of ',i,': ',address)
       s.staticVar[i][1] = address
     for x in range(len(s.code)):
@@ -101,6 +127,14 @@ class CodeGen:
         # the second letter in the string identifies the unique key
         s.code[x] = s.staticVar[s.code[x][1]][1]
         s.code[x+1] = '00'
+        
+  def printCode(s):   
+    # print code in easy to copy and paste format
+    for x in range(len(code)):
+      print(code[x], end=' ')
+      if x % 8 == 0:
+        # new line every 8 hex numbers
+        print()
   
   # Helper methods
   
@@ -108,7 +142,7 @@ class CodeGen:
     # create a new variable entry in the static table
     s.staticVar[s.staticCount] = [node.name, 'XX', s.scopeTree.current[node.name][1]]
     temp = "T"+str(s.staticCount)
-    s.staticCount++
+    s.staticCount = s.staticCount + 1
     return temp
     
   def findStatic(s, node):
@@ -117,7 +151,7 @@ class CodeGen:
     temp = "T" + temp
     return temp
     
-  def typeStatic(s, node)
+  def typeStatic(s, node):
     # return the type of the node
     type = s.staticVar.key(node.name)[1]
     return type

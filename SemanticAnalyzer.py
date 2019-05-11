@@ -5,6 +5,7 @@
 from Tree import Tree
 from Tree import HashNode
 from Token import Token
+from CodeGen import CodeGen
 #from Token import Variable
 
 class Semantics:
@@ -51,6 +52,9 @@ class Semantics:
     if s.errors == 0:
       s.issueWarnings(s.scopeTree.root)
       print("\n",s.scopeTree.hashToString(),sep='')
+      print("Code Gen INFO - Generating code...")
+      gen = CodeGen(s.ast, s.scopeTree)
+      gen.main()
     else:
       print("\nSymbol table not produced due to error(s).\nError Count: ",s.errors)
       
