@@ -4,5 +4,7 @@
  int b
  b = 4
  print(a)
- print(b)
+ if (a == b){
+  print(a)
+ }
 }$
