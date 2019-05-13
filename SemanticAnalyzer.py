@@ -53,8 +53,8 @@ class Semantics:
       s.issueWarnings(s.scopeTree.root)
       print("\n",s.scopeTree.hashToString(),sep='')
       print("Code Gen INFO - Generating code...")
-      gen = CodeGen(s.ast, s.scopeTree)
-      gen.main()
+      # gen = CodeGen(s.ast, s.scopeTree)
+      # gen.main()
     else:
       print("\nSymbol table not produced due to error(s).\nError Count: ",s.errors)
       
@@ -146,6 +146,7 @@ class Semantics:
     # call the proper method for each node that comes up
     if node.name is 'Block':
       s.blockAnalysis(node)
+      print(s.scopeTree.current.name)
     elif node.name is 'VarDecl':
       s.varDeclAnalysis(node)
     elif node.name is 'Assignment':
@@ -171,14 +172,17 @@ class Semantics:
     if s.scopeTree.root is not None:
       # the root is always 0
       s.scopeCount += 1
+      print('node parent =',node.parent.name)
     s.scopeTree.addHashNode(s.scopeCount, 'branch')
     s.scope = s.scopeTree.current
   
   def varDeclAnalysis(s, node):
     # add the variable declared to the current scope
-    if s.scopeTree.current.addEntry(node.children[1].name, [node.children[0].name, node.children[0].lineNumber, False, False, None]) is 'Fail':
+    if s.scopeTree.current.addEntry(node.children[1].name, [node.children[0].name, node.children[0].lineNumber, False, False]) is 'Fail':
       print('SEMANTICS ERROR - SCOPE: ',node.children[1].name,' has already been declared in this scope (line ',node.children[1].lineNumber,')',sep='')
       s.errors += 1
+    else:
+      print(s.scopeTree.current.hashTable)
   
   def assignmentAnalysis(s, node):
     # check to see if the variable was declared and initialize it if type checks out

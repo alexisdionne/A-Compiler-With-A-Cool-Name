@@ -1,10 +1,8 @@
 {
- int a
- a = 3
- int b
- b = 4
- print(a)
- if (a == b){
-  print(a)
- }
+  string b
+  b = "alexis rocks"
+  if(1==1){
+    int b 
+    b = 5
+  }
 }$

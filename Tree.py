@@ -40,7 +40,11 @@ class Tree():
       # update the current node pointer to ourselves
       self.current = node
     
-  
+  def moveToChild(self, idx):
+    # move down a level
+    self.current = self.current.children[idx]
+    print("current node is now", self.current.name)
+    
   def returnToParent(self):
     # move up to the parent node when we're done with this branch
     if self.current.parent is not None:
@@ -110,7 +114,7 @@ class HashNode():
     
   def addEntry(h, name, attributes):
     # add a hash table entry
-    # attributes = [type, isInit, isUsed, value]
+    # attributes = [Type, Line, isInit, isUsed]
     if name not in h.hashTable:
       h.hashTable[name] = attributes
       return 'Success'
