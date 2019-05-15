@@ -27,10 +27,10 @@ class CodeGen:
   def main(s):
     print("main")
     s.analyze(s.ast.root)
-    s.code.append('00')
+    s.append('00')
     s.arrPos += 1
     s.backpatch()
-    for x in range(s.arrPos, 256):
+    for x in range(s.arrPos-1, 256):
       s.code.append('00')
     print()
     s.printCode()
@@ -49,8 +49,8 @@ class CodeGen:
     elif node.name is 'If':
       s.ifGen(node.children[0])
       s.blockGen(node.children[1])
-    # elif node.name is 'While':
-      
+    elif node.name is 'While':
+      s.whileGen(node)
     elif node.name is 'Print':
       s.printGen(node.children[0])
     # else
@@ -73,94 +73,134 @@ class CodeGen:
     
   def varDeclGen(s, node):
     # load the accumulator wih 0 and save a space in memory for the id
-    s.code.append('A9') 
-    s.arrPos += 1
-    s.code.append('00')
-    s.arrPos += 1
-    s.code.append('8D')
-    s.arrPos += 1
-    s.code.append(s.newStatic(node.children[1])) 
-    s.arrPos += 1
-    s.code.append('XX')
-    s.arrPos += 1
+    s.append('A9') 
+    s.append('00')
+    s.append('8D')
+    s.append(s.newStatic(node.children[1])) 
+    s.append('XX')
     
   def assignmentGen(s, node):
     # load the accumulator with the number to assign and 
     # store that in the id's memory location
     if node.children[1].name in s.id:
-      s.code.append('AD')
-      s.arrPos += 1
-      s.code.append('T'+s.findStatic(node.children[1]))
-      s.arrPos += 1
-      s.code.append('XX')
-      s.arrPos += 1
+      s.append('AD')
+      s.append('T'+s.findStatic(node.children[1]))
+      s.append('XX')
     elif node.children[1].name in s.intList:
-      s.code.append('A9')
-      s.arrPos += 1
-      s.code.append('0'+node.children[1].name)
-      s.arrPos += 1
-    s.code.append('8D')
-    s.arrPos += 1
-    s.code.append("T"+s.findStatic(node.children[0]))
-    s.arrPos += 1
-    s.code.append('XX')
-    s.arrPos += 1
+      s.append('A9')
+      s.append('0'+node.children[1].name)
+    s.append('8D')
+    s.append("T"+s.findStatic(node.children[0]))
+    s.append('XX')
     
   def printGen(s, node): 
     # load the value into the Y register and
     # print the value
     
-    # ADD FUNCITONALIY FOR PRINTING BOOLEXPRS
+    # ADD FUNCITONALIY FOR PRINTING EXPRS
     if node.name in s.id:
-      s.code.append('AC')
-      s.arrPos += 1
-      s.code.append("T"+s.findStatic(node))
-      s.arrPos += 1
-      s.code.append('XX')
-      s.arrPos += 1
-      s.code.append('A2')
-      s.arrPos += 1
+      s.append('AC')
+      s.append("T"+s.findStatic(node))
+      s.append('XX')
+      s.append('A2')
       if s.typeStatic(node) is 'string':
-        s.code.append('02')
-        s.arrPos += 1
+        s.append('02')
       else:
-        s.code.append('01')
-        s.arrPos += 1
-      s.code.append('FF')
-      s.arrPos += 1
+        s.append('01')
+      s.append('FF')
     elif node.name in s.intList:
-      s.code.append('A0')
-      s.arrPos += 1
-      s.code.append('0'+node.name)
-      s.arrPos += 1
-      s.code.append('A2')
-      s.arrPos += 1
-      s.code.append('01')
-      s.arrPos += 1
-      s.code.append('FF')
-      s.arrPos += 1
+      s.append('A0')
+      s.append('0'+node.name)
+      s.append('A2')
+      s.append('01')
+      s.append('FF')
     
   def ifGen(s, node):
     # check if the two values are equivelent
     # and branch depending
     
-    s.code.append('AE')
-    s.arrPos += 1
-    s.code.append('T' + s.findStatic(node.children[0]))
-    s.arrPos += 1
-    s.code.append('XX')
-    s.arrPos += 1
-    s.code.append('EC')
-    s.arrPos += 1
-    s.code.append('T' + s.findStatic(node.children[1]))
-    s.arrPos += 1
-    s.code.append('XX')
-    s.arrPos += 1
-    s.code.append('D0')
-    s.arrPos += 1
-    s.code.append(s.newJump())
-    s.arrPos += 1
-  
+    s.append('AE')
+    s.append('T' + s.findStatic(node.children[0]))
+    s.append('XX')
+    s.append('EC')
+    s.append('T' + s.findStatic(node.children[1]))
+    s.append('XX')
+    s.append('D0')
+    s.append(s.newJump())
+ 
+  def whileGen(s, node):
+    # loop code
+    boolop = node.children[0]
+    child0 = boolop.children[0]
+    child1 = boolop.children[1]
+    block = node.children[1]
+    t1 = ""
+    t2 = ""
+    jump = hex(s.arrPos)[:2]
+    # get the first value to compare
+    if child1 in s.id:
+      s.append('AD')
+      s.append('T' + s.findStatic(child1))
+      s.append('XX')
+    elif child1 in s.intList:
+      s.append('AD')
+      s.append('0' + child1.name)
+    s.append('8D')
+    s.append(s.newStatic(child1))
+    t1 = s.code[s.arrPos-1]
+    s.append('XX')
+    # second value to compare
+    if child0 in s.id:
+      s.append('AD')
+      s.append('T' + s.findStatic(child0))
+      s.append('XX')
+    elif child0 in s.intList:
+      s.append('AD')
+      s.append('0' + child0.name)
+    s.append('8D')
+    s.append(s.newStatic(child0))
+    t2 = s.code[s.arrPos-1]
+    s.append('XX')
+    # load values in to compare
+    s.append('AE')
+    s.append(t2)
+    s.append('XX')
+    s.append('EC')
+    s.append(t1)
+    s.append('XX')
+    s.append('A9')
+    s.append('00')
+    if boolop.name is 'isEq':
+      s.append(s.newJump())
+    else:
+      s.append('D0')
+      s.append('02')
+      s.append('A9')
+      s.append('01')
+      s.append('A2')
+      s.append('00')
+      s.append('8D')
+      s.append(t1)
+      s.append('XX')
+      s.append('EC')
+      s.append(t1)
+      s.append('XX')
+      s.append('D0')
+      s.append(s.newJump())
+    s.blockGen(block)
+    s.append('A9')
+    s.append('00')
+    s.append('8D')
+    s.append(t1)
+    s.append('XX')
+    s.append('A2')
+    s.append('01')
+    s.append('EC')
+    s.append(t1)
+    s.append('XX')
+    s.append('D0')
+    s.append(jump)
+ 
   def backpatch(s):
     # go back through the code generated and replace any static variables
     for i in s.staticVar:
@@ -169,6 +209,7 @@ class CodeGen:
         address = "0"+address
       #print('address of ',i,': ',address)
       s.staticVar[i][1] = address
+    print(s.staticVar,s.jump)
     for x in range(len(s.code)):
       if 'T' in s.code[x]:
         # there is a T which identifies a variable
@@ -178,13 +219,13 @@ class CodeGen:
         s.code[x] = s.staticVar[int(key)][1]
         s.code[x+1] = '00'
       elif 'J' in s.code[x]:
-        key = s.code[x][1]
-        if len(s.jump[int(key)][0]) < 2:
-          s.code[x] = '0' + s.jump[int(key)][0]
+        key = int(s.code[x][1])
+        print("key", key)
+        if len(s.jump[key][0]) < 2:
+          s.code[x] = '0' + s.jump[key][0]
         else:
-          s.code[x] = s.jump[int(key)][0]
+          s.code[x] = s.jump[key][0]
         
-  
   # Helper methods
   
   def printCode(s):   
@@ -198,10 +239,24 @@ class CodeGen:
         count = 0
       else:
         count += 1
+        
+  def append(s, str):
+    # append to the end of the array and increment the position
+    s.code.append(str)
+    s.arrPos += 1
   
   def newStatic(s, node):
     # create a new variable entry in the static table
-    s.staticVar[s.staticCount] = [node.name, 'XX', s.scopeTree.current.hashTable[node.name][1]]
+    if node.name in s.id:
+      s.staticVar[s.staticCount] = [node.name, 'XX', s.scopeTree.current.hashTable[node.name][1]]
+    else:
+      if node.name in s.intList:
+        s.staticVar[s.staticCount] = [node.name, 'XX', 'int']
+      elif node.name == 'true' or node.name == 'false':
+        s.staticVar[s.staticCount] = [node.name, 'XX', 'boolean']
+      else:
+        s.staticVar[s.staticCount] = [node.name, 'XX', 'string']
+
     temp = "T"+str(s.staticCount)
     s.staticCount = s.staticCount + 1
     return temp

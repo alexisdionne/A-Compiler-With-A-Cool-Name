@@ -1,10 +1,7 @@
 {
  int a
  a = 3
- int b
- b = 4
- print(a)
- if (a == b){
+ while(a == 3){
   print(a)
  }
 }$
