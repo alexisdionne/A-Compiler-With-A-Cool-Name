@@ -50,7 +50,8 @@ class CodeGen:
       s.ifGen(node.children[0])
       s.blockGen(node.children[1])
     elif node.name is 'While':
-      s.whileGen(node)
+      #s.whileGen(node)
+      print("While")
     elif node.name is 'Print':
       s.printGen(node.children[0])
     # else
@@ -82,6 +83,7 @@ class CodeGen:
   def assignmentGen(s, node):
     # load the accumulator with the number to assign and 
     # store that in the id's memory location
+    
     if node.children[1].name in s.id:
       s.append('AD')
       s.append('T'+s.findStatic(node.children[1]))
@@ -89,9 +91,42 @@ class CodeGen:
     elif node.children[1].name in s.intList:
       s.append('A9')
       s.append('0'+node.children[1].name)
+    elif node.children[1].name == 'Add':
+      addNode = node.children[1]
+      if addNode.children[0].name in s.id:
+        s.append('AD')
+        s.append('T'+s.findStatic(addNode.children[0]))
+        s.append('XX')
+      elif addNode.children[0].name in s.intList:
+        s.append('A9')
+        s.append('0'+addNode.children[0].name)
+      s.append('8D')
+      temp = s.newStatic(addNode.children[0])
+      s.append(temp)
+      s.append("XX")
+      s.addGen(temp, addNode)
+    
     s.append('8D')
     s.append("T"+s.findStatic(node.children[0]))
     s.append('XX')
+    
+  def addGen(s, temp, node):
+    # add all the things
+    print('Add',node.name)
+    if node.name in s.id:
+      s.append('AD')
+      s.append('T'+s.findStatic(node))
+      s.append('XX')
+    elif node.name in s.intList:
+      s.append('A9')
+      s.append('0'+node.name)
+    s.append('6D')
+    s.append(temp)
+    s.append("XX")
+    if len(node.children) > 0:
+      for x in range(len(node.children)):
+        s.addGen(temp, node.children[x])
+    
     
   def printGen(s, node): 
     # load the value into the Y register and
@@ -136,7 +171,7 @@ class CodeGen:
     block = node.children[1]
     t1 = ""
     t2 = ""
-    jump = hex(s.arrPos)[:2]
+    jump = s.arrPos
     # get the first value to compare
     if child1 in s.id:
       s.append('AD')
@@ -171,6 +206,7 @@ class CodeGen:
     s.append('A9')
     s.append('00')
     if boolop.name is 'isEq':
+      s.append('D0')
       s.append(s.newJump())
     else:
       s.append('D0')
@@ -199,7 +235,6 @@ class CodeGen:
     s.append(t1)
     s.append('XX')
     s.append('D0')
-    s.append(jump)
  
   def backpatch(s):
     # go back through the code generated and replace any static variables
@@ -221,10 +256,10 @@ class CodeGen:
       elif 'J' in s.code[x]:
         key = int(s.code[x][1])
         print("key", key)
-        if len(s.jump[key][0]) < 2:
-          s.code[x] = '0' + s.jump[key][0]
+        if s.jump[key] < 10:
+          s.code[x] = '0' + s.jump[key]
         else:
-          s.code[x] = s.jump[key][0]
+          s.code[x] = s.jump[key]
         
   # Helper methods
   
