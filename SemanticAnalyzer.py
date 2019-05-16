@@ -99,7 +99,10 @@ class Semantics:
         # booleanExpr is confused about who to care about, it needs help
         if len(node.children) > 1:
           # it decided to be big and have multiple Expr
-          s.ast.addNode("BoolOp", node.lineNumber, "branch")
+          if node.children[2].name == '==':
+            s.ast.addNode("isEq", node.lineNumber, "branch")
+          elif node.children[2].name == '!=':
+            s.ast.addNode("notEq", node.lineNumber, "branch")
           s.expand(node.children[1], depth + 1)
           s.expand(node.children[3], depth + 1)
           s.ast.returnToParent()
