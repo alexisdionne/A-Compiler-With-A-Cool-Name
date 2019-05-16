@@ -53,8 +53,8 @@ class Semantics:
       s.issueWarnings(s.scopeTree.root)
       print("\n",s.scopeTree.hashToString(),sep='')
       print("Code Gen INFO - Generating code...")
-      # gen = CodeGen(s.ast, s.scopeTree)
-      # gen.main()
+      gen = CodeGen(s.ast, s.scopeTree)
+      gen.main()
     else:
       print("\nSymbol table not produced due to error(s).\nError Count: ",s.errors)
       
@@ -173,6 +173,7 @@ class Semantics:
       # the root is always 0
       s.scopeCount += 1
       print('node parent =',node.parent.name)
+    node.name = "Block "+str(s.scopeCount)
     s.scopeTree.addHashNode(s.scopeCount, 'branch')
     s.scope = s.scopeTree.current
   
@@ -182,6 +183,7 @@ class Semantics:
       print('SEMANTICS ERROR - SCOPE: ',node.children[1].name,' has already been declared in this scope (line ',node.children[1].lineNumber,')',sep='')
       s.errors += 1
     else:
+      print('node parent =',node.parent.name)
       print(s.scopeTree.current.hashTable)
   
   def assignmentAnalysis(s, node):

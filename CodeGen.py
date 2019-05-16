@@ -18,7 +18,6 @@ class CodeGen:
   staticVar = {}
   staticCount = 0
   heapPos = 255
-  scopesVisited = []
   
   id = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'}
   intList={'0','1','2','3','4','5','6','7','8','9'}
@@ -33,6 +32,8 @@ class CodeGen:
     s.analyze(s.ast.root)
     s.arrPos += 1
     print("\nSTATIC:\n",s.staticVar,"\nJUMP:\n",s.jump)
+    print()
+    s.printCode()
     s.backpatch()
     print()
     s.printCode()
@@ -42,7 +43,7 @@ class CodeGen:
     # call the proper method for each node that comes up
     # print()
     # print("NODE: ",node.name,"pos: ", s.arrPos)
-    if node.name is 'Block':
+    if 'Block' in node.name:
       s.blockGen(node)
     elif node.name is 'VarDecl':
       s.varDeclGen(node)
@@ -62,9 +63,8 @@ class CodeGen:
     if len(node.children) is not 0:
       for i in range(len(node.children)):
         s.analyze(node.children[i])
-      if node.name == 'Block':
+      if 'Block' in node.name:
         # return to the parent of this scope
-        s.scopeCount -= 1
         s.scopeTree.returnToParent()
       elif node.name == 'If':
         #print('arrpos - jump =',s.arrPos,'-',s.jump[s.jumpCount-1],'=',str(s.arrPos - s.jump[s.jumpCount-1] - 1))
@@ -73,8 +73,8 @@ class CodeGen:
         
   def blockGen(s, node):
     # move up a scope level to grab correct data location
-    s.scopesVisited.append(s.scopeTree.current.name)
-    print("\nBLOCK",s.scopesVisited)
+    print("\n"+node.name)
+    s.findScope(node.name[6], s.scopeTree.root)
     
   def varDeclGen(s, node):
     # load the accumulator wih 0 and save a space in memory for the id
@@ -244,8 +244,8 @@ class CodeGen:
     # create a new variable entry in the static table
     # attributes = [name, address, scope, type]
     s.staticVar[s.staticCount] = [node.name, 'XX', s.scopeTree.current.name, s.scopeTree.current.hashTable[node.name][0]]
-    print(s.staticVar[s.staticCount])
     temp = "T"+str(s.staticCount)
+    print(s.staticVar[s.staticCount],"temp:",temp)
     s.staticCount = s.staticCount + 1
     return temp
     
@@ -258,11 +258,12 @@ class CodeGen:
         print("found ",s.staticVar[x])
         temp = str(x)
     #print("findStatic: ",temp, 'node name: ',node.name)
+    print("temp in find =",temp)
     return temp
     
   def typeStatic(s, node):
     # return the type of the node
-    if s.findStatic(node) != "ERROR":
+    if s.findStatic(node) != "":
       key = int(s.findStatic(node))
       type = s.staticVar[key][3]
       #print(key,type)
@@ -278,3 +279,16 @@ class CodeGen:
     s.jumpCount += 1
     print("newJump =",temp)
     return temp
+    
+  def findScope(s, num, scope):
+    # find and move to the correct scope
+    print("Scope",scope.name,"  Num =",num)
+    
+    if int(num) == int(scope.name):
+      s.scopeTree.current = scope
+      print("found the scope ", scope.hashTable)
+    else:
+      if len(scope.children) is not 0: 
+      # there are children so note these interior nodes and expand them
+        for i in range(len(scope.children)):
+          s.findScope(num, scope.children[i])
