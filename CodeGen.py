@@ -34,10 +34,7 @@ class CodeGen:
     s.arrPos += 1
     print("\nSTATIC:\n",s.staticVar,"\nJUMP:\n",s.jump)
     print()
-    s.printCode()
     s.backpatch()
-    for x in range(s.arrPos-1, 256):
-      s.code.append('00')
     print()
     s.printCode()
     
@@ -102,6 +99,7 @@ class CodeGen:
       s.append('XX')
     elif node.children[1].name in s.intList:
       # to an int
+      print(node.children[1].name,'int')
       s.append('A9')
       s.append('0'+node.children[1].name)
     elif node.children[1].name == 'Add':
@@ -119,22 +117,20 @@ class CodeGen:
       s.append(temp)
       s.append("XX")
       s.addGen(temp, addNode)
-    elif value is 'true':
+    elif node.children[1].name is 'true':
       # to true
-      s.code[s.arrPos] = 'A9'
-      s.arrPos += 1
-      s.code[s.arrPos] = '01'
-      s.arrPos += 1
-    elif value is 'false':
+      s.append('A9')
+      s.append('01')
+    elif node.children[1].name is 'false':
       # to false
-      s.code[s.arrPos] = 'A9'
-      s.arrPos += 1
-      s.code[s.arrPos] = '00'
-      s.arrPos += 1
+      s.append('A9')
+      s.append('00')
     else:
       # it must be a string
       # leave a 00 to signal the end of the string
       s.heapPos -= 1
+      value = node.children[1].name
+      print(node.children[1].name,'string')
       for x in range(len(value)-2, 0, -1):
         # look at each letter back to front
         #print(x," at ",value[x])
@@ -296,11 +292,13 @@ class CodeGen:
       #print('address of ',i,': ',address)
       s.staticVar[i][1] = address
     print(s.staticVar,s.jump)
+    s.printCode()
     for x in range(len(s.code)):
       if 'T' in s.code[x]:
         # there is a T which identifies a variable
         # the second letter in the string identifies the unique key
-        key = s.code[x][1]
+        print(s.code[x])
+        key = int(s.code[x][1])
         print("backpatch ",s.code[x])
         #print("replacing T",key," with ",s.staticVar[int(key)][1])
         s.code[x] = s.staticVar[int(key)][1]
@@ -308,7 +306,7 @@ class CodeGen:
       elif 'J' in s.code[x]:
         key = int(s.code[x][1])
         print("key", key)
-        if s.jump[key] < 10:
+        if int(s.jump[key]) < 10:
           s.code[x] = '0' + s.jump[key]
         else:
           s.code[x] = s.jump[key]
@@ -329,7 +327,7 @@ class CodeGen:
         
   def append(s, str):
     # append to the end of the array and increment the position
-    s.code.append(str)
+    s.code[s.arrPos] = str
     s.arrPos += 1
   
   def newStatic(s, node):
@@ -337,14 +335,14 @@ class CodeGen:
     
     # attributes = [name, address, scope, type]
     if node.name in s.id:
-      s.staticVar[s.staticCount] = [node.name, 'XX', s.scopeTree.current.hashTable[node.name][1]]
+      s.staticVar[s.staticCount] = [node.name, 'XX', s.scopeTree.current.name, s.scopeTree.current.hashTable[node.name][0]]
     else:
       if node.name in s.intList:
-        s.staticVar[s.staticCount] = [node.name, 'XX', 'int']
+        s.staticVar[s.staticCount] = [node.name, 'XX', s.scopeTree.current.name, 'int']
       elif node.name == 'true' or node.name == 'false':
-        s.staticVar[s.staticCount] = [node.name, 'XX', 'boolean']
+        s.staticVar[s.staticCount] = [node.name, 'XX', s.scopeTree.current.name, 'boolean']
       else:
-        s.staticVar[s.staticCount] = [node.name, 'XX', 'string']
+        s.staticVar[s.staticCount] = [node.name, 'XX', s.scopeTree.current.name, 'string']
     temp = "T"+str(s.staticCount)
     print(s.staticVar[s.staticCount],"temp:",temp)
     s.staticCount = s.staticCount + 1
@@ -354,8 +352,8 @@ class CodeGen:
     # check for the id in the static variables table and return temp number
     temp = ""
     for x in s.staticVar:
-      #print('x is',s.staticVar[x])
-      if s.staticVar[x][0] == node.name and s.staticVar[x][2] == s.scopeTree.current.name:
+      print('x is',s.staticVar[x])
+      if s.staticVar[x][0] == node.name and s.inScope(s.staticVar[x][2]) == True:
         print("found ",s.staticVar[x])
         temp = str(x)
     #print("findStatic: ",temp, 'node name: ',node.name)
@@ -393,3 +391,17 @@ class CodeGen:
       # there are children so note these interior nodes and expand them
         for i in range(len(scope.children)):
           s.findScope(num, scope.children[i])
+          
+  def inScope(s, num):
+    # check that the id is in scope
+    good = False
+    scope = s.scopeTree.current
+    if scope.parent is None and num == scope.name:
+      good = True
+    while(scope.parent is not None):
+      # check all parents to see if its good to print
+      if num == int(scope.name):
+        good = True
+      scope = scope.parent
+    print(good)
+    return good

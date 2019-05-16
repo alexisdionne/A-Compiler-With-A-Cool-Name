@@ -149,7 +149,7 @@ class Semantics:
     # call the proper method for each node that comes up
     if node.name is 'Block':
       s.blockAnalysis(node)
-      print(s.scopeTree.current.name)
+      #print(s.scopeTree.current.name)
     elif node.name is 'VarDecl':
       s.varDeclAnalysis(node)
     elif node.name is 'Assignment':
@@ -166,16 +166,18 @@ class Semantics:
     if len(node.children) is not 0:
       for i in range(len(node.children)):
         s.analyze(node.children[i])
-      if node.name == 'Block':
+      if 'Block' in node.name:
         # return to the parent of this scope
+        #print('currentScope:',s.scopeTree.current.name)
         s.scopeTree.returnToParent()
+        #print('currentScope:',s.scopeTree.current.name)
   
   def blockAnalysis(s, node):
     # adds a new empty hashNode
     if s.scopeTree.root is not None:
       # the root is always 0
       s.scopeCount += 1
-      print('node parent =',node.parent.name)
+      #print('node parent =',node.parent.name)
     node.name = "Block "+str(s.scopeCount)
     s.scopeTree.addHashNode(s.scopeCount, 'branch')
     s.scope = s.scopeTree.current
@@ -238,13 +240,14 @@ class Semantics:
   def printAnalysis(s, node):
     # check the scope of the node to be printed and determine how to check it
     s.checkScope(node.name, s.scopeTree.current)
+    #print("node:",node.name,'currentscope:',s.scopeTree.current.name,"scope:",s.scope.name)
     if node.name in s.scope.hashTable:
       s.evalExpr(node, s.scope.hashTable[node.name][0])
     elif node.name is 'true' or node.name is 'false' or node.name is 'BoolOp':
       s.evalExpr(node, 'boolean')
     elif node.name in s.intList or node.name == 'Add':
       s.evalExpr(node, 'int')
-    elif s.scope is None:
+    elif s.scope.name == '-1':
       print('SEMANTICS ERROR - SCOPE: ',node.name,' does not exist in this scope (line ',node.lineNumber,')',sep='')
       s.errors += 1
     else:

@@ -24,4 +24,18 @@ h = "helix"
 
 print(a){/*7*/print(a)}$
 
-{/*8*/print(a + 1)}
+{/*8*/print(a + 1)}$
+
+{
+  string b
+  int a 
+  a = 1
+  b = "alexis rocks"
+  if(1==a){
+    int b 
+    b = 5
+    print(b)
+    print(a)
+  }
+  print(b)
+}$
