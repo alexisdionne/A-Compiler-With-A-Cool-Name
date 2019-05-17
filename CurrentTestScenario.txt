@@ -2,12 +2,7 @@
   string b
   int a 
   a = 1
-  b = "alexis rocks"
-  if(1==a){
-    int b 
-    b = 5
-    print(b)
-    print(a)
-  }
+  b = "fuck you alexis"
   print(b)
+  print(a)
 }$

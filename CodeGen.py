@@ -32,8 +32,8 @@ class CodeGen:
     s.analyze(s.ast.root)
     s.append('00')
     s.arrPos += 1
-    print("\nSTATIC:\n",s.staticVar,"\nJUMP:\n",s.jump)
-    print()
+    # print("\nSTATIC:\n",s.staticVar,"\nJUMP:\n",s.jump)
+    # print()
     s.backpatch()
     print()
     s.printCode()
@@ -75,12 +75,12 @@ class CodeGen:
         
   def blockGen(s, node):
     # move up a scope level to grab correct data location
-    print("\n"+node.name)
+    # print("\n"+node.name)
     s.findScope(node.name[6], s.scopeTree.root)
     
   def varDeclGen(s, node):
     # load the accumulator wih 0 and save a space in memory for the id
-    print("\nVARDECL")
+    # print("\nVARDECL")
     s.append('A9') 
     s.append('00')
     s.append('8D')
@@ -90,7 +90,7 @@ class CodeGen:
   def assignmentGen(s, node):
     # load the accumulator with the number to assign and 
     # store that in the id's memory location
-    print("\nASSIGNMENT")
+    # print("\nASSIGNMENT")
     
     if node.children[1].name in s.id:
       # to an id
@@ -99,7 +99,7 @@ class CodeGen:
       s.append('XX')
     elif node.children[1].name in s.intList:
       # to an int
-      print(node.children[1].name,'int')
+      # print(node.children[1].name,'int')
       s.append('A9')
       s.append('0'+node.children[1].name)
     elif node.children[1].name == 'Add':
@@ -130,7 +130,7 @@ class CodeGen:
       # leave a 00 to signal the end of the string
       s.heapPos -= 1
       value = node.children[1].name
-      print(node.children[1].name,'string')
+      # print(node.children[1].name,'string')
       for x in range(len(value)-2, 0, -1):
         # look at each letter back to front
         #print(x," at ",value[x])
@@ -151,7 +151,7 @@ class CodeGen:
     
   def addGen(s, temp, node):
     # add all the things
-    print('Add',node.name)
+    # print('Add',node.name)
     if node.name in s.id:
       s.append('AD')
       s.append('T'+s.findStatic(node))
@@ -169,7 +169,7 @@ class CodeGen:
   def printGen(s, node): 
     # load the value into the Y register and
     # print the value
-    print("\nPRINT")
+    # print("\nPRINT",node.name)
     # ADD FUNCITONALIY FOR PRINTING EXPRS
     if node.name in s.id:
       s.append('AC')
@@ -191,7 +191,7 @@ class CodeGen:
   def ifGen(s, node):
     # check if the two values are equivelent
     # and branch depending
-    print("\nIF")
+    # print("\nIF")
     if node.children[0].name in s.id:
       s.append('AE')
       s.append('T' + s.findStatic(node.children[0]))
@@ -199,12 +199,16 @@ class CodeGen:
     elif node.children[0].name in s.intList:
       s.append('A2')
       s.append('0'+str(node.children[0].name))
-    s.append('EC')
     if node.children[1].name in s.id:
-      s.append('AE')
+      s.append('EC')
       s.append('T' + s.findStatic(node.children[1]))
       s.append('XX')
     elif node.children[1].name in s.intList:
+      s.append('A9') 
+      s.append('00')
+      s.append('8D')
+      s.append(s.newStatic(node.children[1])) 
+      s.append('XX')
       s.append('A2')
       s.append('0'+str(node.children[1].name))
     s.append('D0')
@@ -291,21 +295,21 @@ class CodeGen:
         address = "0"+address
       #print('address of ',i,': ',address)
       s.staticVar[i][1] = address
-    print(s.staticVar,s.jump)
-    s.printCode()
+    # print(s.staticVar,s.jump)
+    # s.printCode()
     for x in range(len(s.code)):
       if 'T' in s.code[x]:
         # there is a T which identifies a variable
         # the second letter in the string identifies the unique key
-        print(s.code[x])
+        #print(s.code[x])
         key = int(s.code[x][1])
-        print("backpatch ",s.code[x])
+        #print("backpatch ",s.code[x])
         #print("replacing T",key," with ",s.staticVar[int(key)][1])
         s.code[x] = s.staticVar[int(key)][1]
         s.code[x+1] = '00'
       elif 'J' in s.code[x]:
         key = int(s.code[x][1])
-        print("key", key)
+        #print("key", key)
         if int(s.jump[key]) < 10:
           s.code[x] = '0' + s.jump[key]
         else:
@@ -344,7 +348,7 @@ class CodeGen:
       else:
         s.staticVar[s.staticCount] = [node.name, 'XX', s.scopeTree.current.name, 'string']
     temp = "T"+str(s.staticCount)
-    print(s.staticVar[s.staticCount],"temp:",temp)
+    #print(s.staticVar[s.staticCount],"temp:",temp)
     s.staticCount = s.staticCount + 1
     return temp
     
@@ -352,12 +356,12 @@ class CodeGen:
     # check for the id in the static variables table and return temp number
     temp = ""
     for x in s.staticVar:
-      print('x is',s.staticVar[x])
+      # print('x is',s.staticVar[x])
       if s.staticVar[x][0] == node.name and s.inScope(s.staticVar[x][2]) == True:
-        print("found ",s.staticVar[x])
+        # print("found ",s.staticVar[x])
         temp = str(x)
-    #print("findStatic: ",temp, 'node name: ',node.name)
-    print("temp in find =",temp)
+    # print("findStatic: ",temp, 'node name: ',node.name)
+    # print("temp in find =",temp)
     return temp
     
   def typeStatic(s, node):
@@ -368,7 +372,7 @@ class CodeGen:
       #print(key,type)
     else:
       type = "ERROR"
-    print("type =",type)
+    # print("type =",type)
     return type
     
   def newJump(s):
@@ -376,16 +380,16 @@ class CodeGen:
     s.jump[s.jumpCount] = s.arrPos
     temp = "J" + str(s.jumpCount)
     s.jumpCount += 1
-    print("newJump =",temp)
+    # print("newJump =",temp)
     return temp
     
   def findScope(s, num, scope):
     # find and move to the correct scope
-    print("Scope",scope.name,"  Num =",num)
+    # print("Scope",scope.name,"  Num =",num)
     
     if int(num) == int(scope.name):
       s.scopeTree.current = scope
-      print("found the scope ", scope.hashTable)
+      # print("found the scope ", scope.hashTable)
     else:
       if len(scope.children) is not 0: 
       # there are children so note these interior nodes and expand them
@@ -396,12 +400,18 @@ class CodeGen:
     # check that the id is in scope
     good = False
     scope = s.scopeTree.current
+    # print("scope start",scope.name)
     if scope.parent is None and num == scope.name:
       good = True
-    while(scope.parent is not None):
+    while True:
       # check all parents to see if its good to print
-      if num == int(scope.name):
+      # print("scope:", scope.name,type(scope.name),'==',num)
+      if num == scope.name:
         good = True
-      scope = scope.parent
-    print(good)
+        break
+      # print("good?",good)
+      if scope.parent is None:
+        break
+      else:
+        scope = scope.parent
     return good
